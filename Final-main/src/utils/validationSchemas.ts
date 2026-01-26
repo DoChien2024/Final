@@ -161,30 +161,6 @@ export const editCategorySchema = z.object({
 
 export type CategoryFormData = z.infer<typeof createCategorySchema>
 
-// ========== ARTICLE VALIDATION ==========
-
-export const createArticleSchema = z.object({
-  title: z.string().min(1, REQUIRED_MSG),
-  author: z.string().min(1, REQUIRED_MSG),
-  status: z.string().min(1, REQUIRED_MSG),
-  categoryId: z.string().min(1, REQUIRED_MSG),
-  duration: z.coerce.number({ message: REQUIRED_MSG }).min(1, REQUIRED_MSG),
-  content: z.string().min(1, REQUIRED_MSG),
-  featuredImageId: z.string().min(1, REQUIRED_MSG),
-})
-
-export const editArticleSchema = z.object({
-  title: z.string().min(1, REQUIRED_MSG),
-  author: z.string().min(1, REQUIRED_MSG),
-  status: z.string().min(1, REQUIRED_MSG),
-  categoryId: z.string().min(1, REQUIRED_MSG),
-  duration: z.coerce.number({ message: REQUIRED_MSG }).min(1, REQUIRED_MSG),
-  content: z.string().min(1, REQUIRED_MSG),
-  featuredImageId: z.string().optional().default(''),
-})
-
-export type ArticleFormData = z.infer<typeof createArticleSchema>
-
 // ========== PD SESSION VALIDATION ==========
 
 export const createPDSessionSchema = z.object({

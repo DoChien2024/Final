@@ -5,6 +5,7 @@ import GlobalConfirmDialog from './components/ui/GlobalConfirmDialog'
 
 import { Dashboard } from './modules/dashboard'
 import { Articles } from './modules/articles'
+import { TransactionPage } from './modules/transactions'
 import { Categories } from './modules/categories'
 import { Users } from './modules/users'
 import { DoulaManagement, DoulaView, PackageView } from './modules/doulas'
@@ -33,6 +34,7 @@ function App() {
         
         {/* Content Management */}
         <Route path="/articles" element={<Articles />} />
+        <Route path="/transactions" element={<TransactionPage />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/help-documents" element={<HelpDocuments />} />
         

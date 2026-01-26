@@ -43,6 +43,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
         rules={{
           required: required ? 'This field is required.' : false,
         }}
+        // schema
         render={({ field }) => (
           <Select
             {...field}

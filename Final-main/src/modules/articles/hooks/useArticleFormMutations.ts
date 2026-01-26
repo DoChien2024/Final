@@ -2,9 +2,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToastStore } from '@/store/toastStore'
 import { useConfirmStore } from '@/store/useConfirmStore'
 import { useModalStore } from '@/store/modalStore'
-import { articleService } from '../article.service'
+import { articleApi } from '../api/api'
 import { createTransform } from '@/utils'
-import type { ArticleFormData } from '@/utils/validationSchemas'
+import type { ArticleFormData } from '../schema/article.schema'
 
 export const useArticleFormMutations = () => {
   const queryClient = useQueryClient()
@@ -38,7 +38,7 @@ export const useArticleFormMutations = () => {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: ArticleFormData) => 
-      articleService.createArticle(transformFormData(data)),
+      articleApi.create(transformFormData(data)),
     onSuccess: () => {
       showToast('Article created successfully', 'success')
       closeModalAndRefresh()
@@ -52,7 +52,7 @@ export const useArticleFormMutations = () => {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: ArticleFormData }) => 
-      articleService.updateArticle(id, transformFormData(data)),
+      articleApi.update(id, transformFormData(data)),
     onSuccess: async () => {
       showToast('Article updated successfully', 'success')
       closeModal()
@@ -69,7 +69,7 @@ export const useArticleFormMutations = () => {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => articleService.deleteArticle(id),
+    mutationFn: (id: string) => articleApi.delete(id),
     onSuccess: () => {
       showToast('Article deleted successfully', 'success')
       queryClient.invalidateQueries({ queryKey: ['articles'] })

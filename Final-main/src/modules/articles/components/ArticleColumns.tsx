@@ -1,10 +1,11 @@
+
 import { createColumnHelper } from '@tanstack/react-table'
-import type { Article } from './article.types'
+import type { IArticleDetail } from '../article.types'
 import DataTableActions from '@/components/table/DataTableActions'
 import { useModalStore } from '@/store/modalStore'
 import { useTableActionStore } from '@/store/tableActionStore'
 
-const columnHelper = createColumnHelper<Article>()
+const columnHelper = createColumnHelper<IArticleDetail>()
 
 export const createArticlesColumns = () => [
   columnHelper.accessor('id', {

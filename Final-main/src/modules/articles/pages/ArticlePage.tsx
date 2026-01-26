@@ -1,19 +1,19 @@
 import { useEffect } from 'react'
-import SearchBar from '@/components/table/SearchBar'
-import DataTable from '@/components/table/DataTable'
-import Toast from '@/components/ui/Toast'
-import ArticleFormModal from './ArticleFormModal'
-import { articleService } from './article.service'
 import { useTableManager } from '@/hooks/useTableManager'
-import { createArticlesColumns } from './articles.columns'
-import { useConfirmStore } from '@/store/useConfirmStore'
 import { useModalStore } from '@/store/modalStore'
+import { useConfirmStore } from '@/store/useConfirmStore'
 import { useTableActionStore } from '@/store/tableActionStore'
-import { useArticleFormMutations } from './hooks/useArticleFormMutations'
-import type { Article } from './article.types'
+import { useArticleFormMutations } from '../hooks/useArticleFormMutations'
+import { articleApi } from '../api/api'
+import { createArticlesColumns } from '../components/ArticleColumns'
+import DataTable from '@/components/table/DataTable'
+import SearchBar from '@/components/table/SearchBar'
+import Toast from '@/components/ui/Toast'
+import ArticleModal from '../components/ArticleModal'
+import type { IArticleDetail } from '../article.types' 
 
-export default function Articles() {
-  const { isOpen: isModalOpen, selectedData: selectedArticle, mode: modalMode, open: openModal, close: closeModal } = useModalStore()
+export default function ArticlePage() {
+  const { open: openModal } = useModalStore()
   const { confirmDelete } = useConfirmStore()
   const { setDeleteHandler } = useTableActionStore()
   const { deleteMutation } = useArticleFormMutations()
@@ -27,42 +27,28 @@ export default function Articles() {
     error,
     updateParams,
     handleSortChange,
-  } = useTableManager<Article>({
+  } = useTableManager<IArticleDetail>({
     queryKey: 'articles',
-    fetchFn: (params) => articleService.getArticles({ 
-      ...params,
-      f_type: 'article',
-      embed: 'author,category'
-    }),
-    defaultSortField: 'createdAt',
+    fetchFn: (params) => articleApi.getAll({ ...params, f_type: 'article' }),
+    defaultSortField: 'index',
     defaultSortOrder: 'desc',
     defaultLimit: 10,
   })
 
-  // Setup delete handler for table actions
   useEffect(() => {
     setDeleteHandler((id) => {
       confirmDelete(() => deleteMutation.mutate(id), 'this article')
     })
   }, [setDeleteHandler, confirmDelete, deleteMutation])
 
-  // Table columns
-  const columns = createArticlesColumns()
-
   return (
     <>
       <div className="page-container">
         <div className="page-header">
-          <h1 className="page-title">Article</h1>
+          <h1 className="page-title">Articles</h1>
           <div className="page-actions">
-            <SearchBar
-              placeholder="Search articles..."
-              isFetching={isLoading}
-            />
-            <button
-              onClick={() => openModal('create')}
-              className="btn-primary"
-            >
+            <SearchBar placeholder="Search articles..." isFetching={isLoading} />
+            <button onClick={() => openModal('create')} className="btn-primary">
               Create
             </button>
           </div>
@@ -70,7 +56,7 @@ export default function Articles() {
 
         <DataTable
           data={data?.items || []}
-          columns={columns}
+          columns={createArticlesColumns()}
           sorting={sorting}
           onSortChange={handleSortChange}
           isLoading={isLoading}
@@ -87,16 +73,8 @@ export default function Articles() {
         />
       </div>
 
-      <ArticleFormModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        article={selectedArticle}
-        mode={modalMode}
-      />
-
+      <ArticleModal />
       <Toast />
     </>
   )
 }
-
-

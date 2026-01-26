@@ -47,11 +47,16 @@ export const parseCategory = (
  * @returns Array of categories
  */
 export const parseCategoriesData = (categoriesData: any): any[] => {
-  if (!categoriesData?.data) return []
+  if (!categoriesData) return []
   
-  if (Array.isArray(categoriesData.data)) {
-    return categoriesData.data
+  // If it's axios response object with .data property
+  const apiData = categoriesData.data || categoriesData
+  
+  if (!apiData?.data) return []
+  
+  if (Array.isArray(apiData.data)) {
+    return apiData.data
   }
   
-  return categoriesData.data.items || []
+  return apiData.data.items || []
 }

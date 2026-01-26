@@ -12,7 +12,7 @@ export function createCrudService<T, TFormData = Partial<T>>(baseEndpoint: strin
      */
     async getAll(params?: QueryParams): Promise<ApiResponse<PaginatedResponse<T>>> {
       return axiosInstance.get(baseEndpoint, { params })
-    },
+    },  
 
     /**
      * Get single item by ID

@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from '@/api/api'
+import { API_ENDPOINTS } from '@/config'
 import { createCrudService } from '@/services/base.service'
 import type { Client, ClientFormData } from './client.types'
 

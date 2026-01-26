@@ -1,5 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import { API_CONFIG } from '../api/api'
+import { API_CONFIG } from '@/config'
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -28,7 +28,8 @@ axiosInstance.interceptors.request.use(
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    return response.data
+    // Return full response.data to keep metadata
+    return response
   },
   (error: AxiosError) => {
     // Handle errors

@@ -9,7 +9,7 @@ export const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   // Thêm các trạng thái khác nếu cần
 };
-import { FiUsers, FiFileText, FiGrid, FiBox, FiTag, FiBookOpen, FiSearch } from 'react-icons/fi';
+import { FiUsers, FiFileText, FiGrid, FiBox, FiTag, FiBookOpen, FiSearch, FiDollarSign } from 'react-icons/fi';
 
 export const MENU_ITEMS = [
   {
@@ -35,6 +35,11 @@ export const MENU_ITEMS = [
     path: '/articles',
     label: 'Article',
     icon: FiFileText,
+  },
+  {
+    path: '/transactions',
+    label: 'Transactions',
+    icon: FiDollarSign,
   },
   {
     path: '/pd-session',

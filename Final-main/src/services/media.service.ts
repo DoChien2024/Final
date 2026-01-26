@@ -1,6 +1,6 @@
 import axiosInstance from '@/utils/axios'
 import axios from 'axios'
-import { API_ENDPOINTS } from '@/api/api'
+import { API_ENDPOINTS } from '@/config'
 
 export interface SignedUrlResponse {
   message: string
@@ -40,7 +40,8 @@ export const mediaService = {
    * Step 1: Get signed URL from backend
    */
   async getSignedUrl(type: 'images' | 'videos' = 'images'): Promise<SignedUrlResponse> {
-    return axiosInstance.post(API_ENDPOINTS.MEDIA_SIGNED_URL, { type })
+    const response = await axiosInstance.post(API_ENDPOINTS.MEDIA_SIGNED_URL, { type })
+    return response.data
   },
 
   /**
@@ -81,6 +82,7 @@ export const mediaService = {
    * Step 3: Create media record in database
    */
   async createMedia(uri: string, type: 'images' | 'videos' = 'images'): Promise<UploadImageResponse> {
-    return axiosInstance.post('/medias', { uri, type })
+    const response = await axiosInstance.post('/medias', { uri, type })
+    return response.data
   },
 }

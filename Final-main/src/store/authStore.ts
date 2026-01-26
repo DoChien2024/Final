@@ -37,8 +37,24 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user, isAuthenticated: !!user }),
 
       login: async (credentials) => {
-        const { data } = await authService.adminLogin(credentials)
-        const { admin, tokens } = data
+        const response = await authService.adminLogin(credentials)
+        console.log('🔍 Full API Response:', response)
+        console.log('🔍 Response Data:', response.data)
+        
+        const { data } = response
+        
+        // API có thể trả về response.data.data hoặc response.data
+        const actualData = data?.data || data
+        console.log('🔍 Actual Data:', actualData)
+        
+        const { admin, tokens } = actualData || {}
+        
+        // Check if tokens exist before accessing
+        if (!tokens || !tokens.accessToken) {
+          console.error('❌ Missing tokens in response:', actualData)
+          throw new Error('Invalid response: missing authentication tokens')
+        }
+        
         localStorage.setItem('accessToken', tokens.accessToken)
         localStorage.setItem('refreshToken', tokens.refreshToken)
         if (admin) {

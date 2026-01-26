@@ -6,9 +6,6 @@
 // Formatting utilities
 export * from './formatters'
 
-// Query params & pagination utilities
-export * from './queryParams'
-
 // General utilities (status, user, etc.)
 export * from './general'
 

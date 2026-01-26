@@ -40,15 +40,15 @@ export const getQueryParams = (
 
 /**
  * Build query params object for API requests
- * Chuyển đổi từ pageIndex/pageSize sang offset/limit format
+ * Backend expects: page, limit, search, sort
  * @param params - Parsed query params
- * @returns Object ready for API request with offset-based pagination
+ * @returns Object ready for API request with page-based pagination
  */
 export const buildApiQueryParams = (params: Partial<ParsedQueryParams> = {}) => {
   const { pageIndex = 1, pageSize = 10, search = '' } = params
   
   return {
-    offset: (pageIndex - 1) * pageSize,
+    page: pageIndex,
     limit: pageSize,
     ...(search?.trim() && { search: search.trim() }),
   }
@@ -64,28 +64,41 @@ export const buildApiQueryParams = (params: Partial<ParsedQueryParams> = {}) => 
 export const parsePaginatedResponse = <T>(response: any, fallbackPage: number = 1, fallbackLimit: number = 10) => {
   if (!response) return { items: [], total: 0, totalPages: 1, page: fallbackPage, limit: fallbackLimit }
 
-  const { data, metadata } = response
   let items: T[] = []
   let meta: any = null
 
-  if (Array.isArray(data)) {
-    items = data
-    meta = metadata
-  } else if (data && typeof data === 'object') {
-    if (Array.isArray(data.items)) {
-      items = data.items
-      meta = data
-    } else if (Array.isArray(data.data)) {
-      items = data.data
-      meta = data.metadata || data
+  // Backend response structure: {message: "Success", data: [...], metadata: {page, limit, totalPages, totalCount}}
+  if (response.data && Array.isArray(response.data)) {
+    items = response.data
+    meta = response.metadata || null
+  } 
+  // Fallback: data has items property
+  else if (response.data && typeof response.data === 'object') {
+    if (Array.isArray(response.data.items)) {
+      items = response.data.items
+      meta = response.data
+    } else if (Array.isArray(response.data.data)) {
+      items = response.data.data
+      meta = response.data.metadata || response.data
     }
   }
-
-  return {
-    items,
-    total: meta?.totalCount || meta?.total || items.length,
-    totalPages: meta?.totalPages || 1,
-    page: meta?.page || fallbackPage,
-    limit: meta?.limit || fallbackLimit,
+  // Direct array (unlikely)
+  else if (Array.isArray(response)) {
+    items = response
+    meta = null
   }
+
+  const totalCount = meta?.totalCount || meta?.total || items.length
+  const currentLimit = meta?.limit || fallbackLimit
+  const calculatedTotalPages = Math.ceil(totalCount / currentLimit)
+
+  const result = {
+    items,
+    total: totalCount,
+    totalPages: meta?.totalPages || calculatedTotalPages,
+    page: meta?.page || fallbackPage,
+    limit: currentLimit,
+  }
+
+  return result
 }

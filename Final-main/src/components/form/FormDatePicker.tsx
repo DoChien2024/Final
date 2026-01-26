@@ -27,7 +27,7 @@ export function FormDatePicker<TFieldValues extends FieldValues>({
   required = false,
   placeholder = 'Select date',
   showTimeSelect = false,
-  dateFormat = 'MM/dd/yyyy',
+  dateFormat = 'dd MMM yyyy',
   minDate,
   maxDate,
   className = '',

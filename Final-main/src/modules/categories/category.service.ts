@@ -1,5 +1,5 @@
 ﻿import axiosInstance from '@/utils/axios'
-import { API_ENDPOINTS } from '@/api/api'
+import { API_ENDPOINTS } from '@/config'
 import { createCrudService } from '@/services/base.service'
 import type { Category, CategoryFormData } from './category.types'
 
