@@ -1,11 +1,13 @@
-import { useFormContext, Controller } from 'react-hook-form'
+// TransactionDetailsForm.tsx
+import { useFormContext } from 'react-hook-form'
 import { FiChevronDown } from 'react-icons/fi'
-import Select from 'react-select'
-import { getSelectStyles } from '@/constants/selectStyles'
 import { TRANSACTION_STATUSES, type FieldVisibility, type TransactionType } from '../../constants'
 import type { TransactionFormValues, TransactionOptions, LoadingStates } from '../../types'
 import { TransactionFormDebit } from '../modal/TransactionFormDebit'
 import { TransactionFormCredit } from '../modal/TransactionFormCredit'
+import { StatusButtons } from '../form/share/StatusButtons'
+// Import component mới tách
+import { TransactionTypeSelect } from '../form/share/TransactionTypeSelect'
 
 interface SelectOption {
   label: string
@@ -28,27 +30,6 @@ interface Props {
   type: 'Debit' | 'Credit'
 }
 
-// Status Buttons
-function StatusButtons() {
-  const { setValue, watch } = useFormContext<TransactionFormValues>()
-  const currentStatus = watch('status')
-
-  return (
-    <div className="status-buttons-row">
-      {TRANSACTION_STATUSES.map((status) => (
-        <button
-          key={status}
-          type="button"
-          className={`status-btn-pill ${currentStatus === status ? 'active' : ''} status-${status.toLowerCase()}`}
-          onClick={() => setValue('status', status)}
-        >
-          {status}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 export function TransactionDetailsForm({
   transactionTypeOptions,
   options,
@@ -60,7 +41,29 @@ export function TransactionDetailsForm({
   showAllFields,
   type,
 }: Props) {
-  const { control, formState: { errors }, reset } = useFormContext<TransactionFormValues>()
+  const { reset, getValues } = useFormContext<TransactionFormValues>()
+
+  // Logic xử lý khi đổi loại giao dịch
+  const handleTransactionTypeChange = (newValue: string) => {
+    const currentType = getValues('transactionType');
+    if (newValue === currentType) return;
+
+    const newTypeTyped = newValue as TransactionType | ''
+
+    reset({
+        transactionType: newTypeTyped,
+        clientName: '',
+        subOrgName: '',
+        currency: '',
+        amount: null,
+        fees: null,
+        gstAmount: null,
+        bankCharges: null,
+        effectiveDate: new Date(),
+        bankAccount: '',
+        description: '',
+    })
+  }
 
   const renderFormFields = () => {
     if (!showAllFields) return null
@@ -77,7 +80,6 @@ export function TransactionDetailsForm({
         />
       )
     }
-
     return (
       <TransactionFormCredit
         options={options}
@@ -88,7 +90,6 @@ export function TransactionDetailsForm({
       />
     )
   }
-
   return (
     <details className="form-section-collapsible" open>
       <summary className="section-header">
@@ -102,53 +103,19 @@ export function TransactionDetailsForm({
             <label className="form-table-label">
               Transaction Type <span className="required-asterisk">*</span>
             </label>
-            <div className="form-table-input">
-              <Controller
-                name="transactionType"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    options={transactionTypeOptions}
-                    value={transactionTypeOptions.find(opt => opt.value === field.value) || null}
-                    onChange={(opt) => {
-                      const newValue = (opt?.value || '') as TransactionType | ''
-                      if (newValue !== field.value) {
-                        reset({
-                          transactionType: newValue,
-                          status: 'Draft',
-                          clientName: '',
-                          subOrgName: '',
-                          currency: '',
-                          amount: 0,
-                          fees: null,
-                          gstAmount: null,
-                          bankCharges: null,
-                          effectiveDate: new Date(),
-                          bankAccount: '',
-                          description: '',
-                          createdDate: new Date(),
-                        })
-                      }
-                    }}
-                    placeholder="Select"
-                    isClearable
-                    isSearchable
-                    styles={getSelectStyles(!!errors.transactionType)}
-                    className="form-table-select"
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-                  />
-                )}
-              />
-              {errors.transactionType && <span className="form-error">{errors.transactionType.message}</span>}
-            </div>
+            
+            <TransactionTypeSelect 
+              options={transactionTypeOptions}
+              onTypeChange={handleTransactionTypeChange}
+            />
+            
           </div>
 
           {/* Transaction Status */}
           <div className="form-table-row">
             <label className="form-table-label">Transaction Status</label>
             <div className="form-table-input">
-              <StatusButtons />
+              <StatusButtons statuses={TRANSACTION_STATUSES} />
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import { useFormContext, Controller } from 'react-hook-form'
+import { useFormContext, useController } from 'react-hook-form' // Import thêm useController
 import { FiUpload, FiFile, FiX, FiChevronDown } from 'react-icons/fi'
 import type { TransactionFormValues } from '../../types'
 
@@ -7,24 +7,29 @@ interface Props {
 }
 
 export function DocumentAttachmentForm({ defaultOpen = true }: Props) {
-  const { control, watch, setValue } = useFormContext<TransactionFormValues>()
-  const supportingDocs = watch('supportingDocs') || []
+  const { control } = useFormContext<TransactionFormValues>()
+
+  const { field: { value: files = [], onChange } } = useController({
+    name: 'supportingDocs',
+    control,
+    defaultValue: []
+  })
 
   const validateFile = (file: File) => {
     const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     return validTypes.includes(file.type) && file.size <= 5 * 1024 * 1024
   }
 
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return
-    const validFiles = Array.from(files).filter(validateFile)
+  const handleFiles = (fileList: FileList | null) => {
+    if (!fileList) return
+    const validFiles = Array.from(fileList).filter(validateFile)
     if (validFiles.length) {
-      setValue('supportingDocs', [...supportingDocs, ...validFiles])
+      onChange([...files, ...validFiles])
     }
   }
 
-  const removeFile = (index: number) => {
-    setValue('supportingDocs', supportingDocs.filter((_, i) => i !== index))
+  const removeFile = (indexToRemove: number) => {
+    onChange(files.filter((_, index) => index !== indexToRemove))
   }
 
   return (
@@ -34,35 +39,36 @@ export function DocumentAttachmentForm({ defaultOpen = true }: Props) {
         <FiChevronDown className="collapse-icon" />
       </summary>
       <div className="section-content">
-        <Controller
-          name="supportingDocs"
-          control={control}
-          render={() => (
-            <div
-              className="file-upload-zone"
-              onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
-              onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleFiles(e.dataTransfer.files) }}
-            >
-              <label htmlFor="file-upload" className="file-upload-label">
-                <FiUpload className="upload-icon" />
-                <p className="upload-text">Drag and drop your files here or <span className="browse-link">Browse Files</span></p>
-                <p className="upload-hint">PDF, DOC, DOCX (Max 5MB)</p>
-              </label>
-              <input
-                id="file-upload"
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx"
-                onChange={(e) => { handleFiles(e.target.files); e.target.value = '' }}
-                hidden
-              />
-            </div>
-          )}
-        />
+        <div
+          className="file-upload-zone"
+          onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+          onDrop={(e) => { 
+            e.preventDefault(); 
+            e.stopPropagation(); 
+            handleFiles(e.dataTransfer.files) 
+          }}
+        >
+          <label htmlFor="file-upload" className="file-upload-label">
+            <FiUpload className="upload-icon" />
+            <p className="upload-text">Drag and drop your files here or <span className="browse-link">Browse Files</span></p>
+            <p className="upload-hint">PDF, DOC, DOCX (Max 5MB)</p>
+          </label>
+          <input
+            id="file-upload"
+            type="file"
+            multiple
+            accept=".pdf,.doc,.docx"
+            onChange={(e) => { 
+              handleFiles(e.target.files); 
+              e.target.value = '' 
+            }}
+            hidden
+          />
+        </div>
 
-        {supportingDocs.length > 0 && (
+        {files.length > 0 && (
           <div className="file-list">
-            {supportingDocs.map((file: File, index: number) => (
+            {files.map((file: File, index: number) => (
               <div key={index} className="file-item">
                 <FiFile className="file-icon" />
                 <span className="file-name">{file.name}</span>

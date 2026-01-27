@@ -394,15 +394,16 @@ input::placeholder {
 
 .user-menu-dropdown {
   position: absolute;
-  bottom: 100%;
-  left: 12px;
-  right: 12px;
+  top: 100%;
+  left: 0;
+  right: auto;
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  margin-bottom: 8px;
   overflow: hidden;
   z-index: 1000;
+  min-width: 160px;
+  padding: 8px 0;
 }
 
 .user-menu-item {
@@ -419,7 +420,9 @@ input::placeholder {
 }
 
 .user-menu-item:hover {
-  background: #f5f5f5;
+  background:  #5e35b1;
+  color: white;
+  box-shadow: 0 2px 8px rgba(94, 53, 177, 0.2);
 }
 
 .user-menu-item.logout {
