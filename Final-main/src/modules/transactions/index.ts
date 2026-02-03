@@ -1,5 +1,6 @@
 // Pages
 export { default as TransactionPage } from './components/TransactionPage'
+export { TransactionConfirmPage } from './components/confirm'
 
 // Hooks
 export { useTransactionForm } from './hooks'

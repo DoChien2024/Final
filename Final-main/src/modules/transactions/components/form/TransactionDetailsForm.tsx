@@ -12,7 +12,8 @@ export function TransactionDetailsForm() {
     transactionStatusOptions,
     transactionType,
     onChange,
-    type 
+    type,
+    mode
   } = useTransactionFormContext()
 
   const showAllFields = !!transactionType
@@ -52,6 +53,7 @@ export function TransactionDetailsForm() {
                 name="transactionType"
                 options={transactionTypeOptions}
                 extendOnChange={handleTransactionTypeChange}
+                disabled={mode === 'submit'}
               />
             </div>
           </div>
@@ -60,7 +62,10 @@ export function TransactionDetailsForm() {
           <div className="form-table-row">
             <label className="form-table-label">Transaction Status</label>
             <div className="form-table-input">
-              <StatusButtons statuses={transactionStatusOptions.map(s => s.value)} />
+              <StatusButtons 
+                statuses={transactionStatusOptions.map(s => s.value)} 
+                disabled={mode === 'submit'}
+              />
             </div>
           </div>
 

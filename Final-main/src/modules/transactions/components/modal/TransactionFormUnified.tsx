@@ -1,4 +1,5 @@
 import { useFormContext } from 'react-hook-form'
+import { useEffect } from 'react'
 import { FiLock } from 'react-icons/fi'
 import type { TransactionFormValues } from '../../types'
 import { useTransactionFormContext } from '../../context/TransactionFormContext'
@@ -11,7 +12,7 @@ import {
 import { getBankLabel } from '../../utils/formatters'
 
 export function TransactionFormUnified() {
-  const { formState: { errors } } = useFormContext<TransactionFormValues>()
+  const { formState: { errors }, setValue } = useFormContext<TransactionFormValues>()
   const { 
     loadingStates, 
     fieldVisibility,
@@ -27,6 +28,13 @@ export function TransactionFormUnified() {
 
   const bankLabel = getBankLabel(fieldVisibility.bankDirection)
   const isDebit = type === 'Debit'
+  
+  // Update _hasBankOptions whenever bankOptions change
+  useEffect(() => {
+    setValue('_hasBankOptions', bankOptions.length > 0)
+  }, [bankOptions.length, setValue])
+  
+  const hasBankOptions = bankOptions.length > 0
 
   return (
     <>
@@ -49,7 +57,7 @@ export function TransactionFormUnified() {
       {isDebit && fieldVisibility.showClientFields && (
         <div className="form-table-row">
           <label className="form-table-label">Sub-Org Name</label>
-          <div className="form-table-input with-lock">
+          <div className="form-table-input">
             <SelectController
               name="subOrgName"
               options={subOrgOptions}
@@ -128,14 +136,18 @@ export function TransactionFormUnified() {
 
       {/* Bank Details */}
       <div className="form-table-row">
-        <label className="form-table-label">{bankLabel}</label>
+        <label className="form-table-label">
+          {bankLabel} {hasBankOptions && <span className="required-asterisk">*</span>}
+        </label>
         <div className="form-table-input">
           <SelectController
             name="bankAccount"
             options={bankOptions}
             isLoading={loadingStates.bankAccounts}
             extendOnChange={onChange.bankAccount}
+            placeholder="Select bank account"
           />
+          {errors.bankAccount && <span className="form-error">{errors.bankAccount.message}</span>}
         </div>
       </div>
 

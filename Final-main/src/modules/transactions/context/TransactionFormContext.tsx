@@ -38,6 +38,7 @@ interface TransactionFormContextValue {
   currency: string | undefined
   onChange: OnChangeHandlers
   type: 'Debit' | 'Credit'
+  mode?: 'draft' | 'submit'
 }
 
 const TransactionFormContext = createContext<TransactionFormContextValue | undefined>(undefined)

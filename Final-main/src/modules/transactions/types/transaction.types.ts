@@ -96,6 +96,8 @@ export interface TransactionFormValues {
   paymentDate?: Date
   couponPayments?: CouponPaymentRow[]
   totalCouponAmount?: number
+  // Internal field for conditional validation
+  _hasBankOptions?: boolean
 }
 
 // ==================== OPTIONS & LOADING TYPE ====================

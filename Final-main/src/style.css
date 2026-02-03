@@ -2424,6 +2424,44 @@ input[type="file"].error:focus {
   line-height: 1.5;
 }
 
+/* Error Banner */
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.error-banner .error-icon {
+  flex-shrink: 0;
+  color: #dc2626;
+  margin-top: 2px;
+  font-size: 18px;
+}
+
+.error-banner .error-message {
+  font-size: 14px;
+  color: #991b1b;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.error-banner .error-list {
+  list-style: disc;
+  margin-left: 20px;
+  font-size: 13px;
+  color: #dc2626;
+  line-height: 1.6;
+}
+
+.error-banner .error-list li {
+  margin-bottom: 4px;
+}
+
 /* Form Value Display */
 .form-value {
   display: inline-block;
@@ -2466,3 +2504,167 @@ input[type="file"].error:focus {
   border-top: 1px solid #e5e7eb;
 }
 
+/* ============================================
+   Transaction Confirm Overlay Styles
+   ============================================ */
+
+.confirm-overlay-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; /* Above modal */
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.confirm-overlay-container {
+  background: white;
+  border-radius: 12px;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   Transaction Confirm Page Styles
+   ============================================ */
+
+.transaction-confirm-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 24px;
+  overflow-y: auto; /* Add scrollbar */
+}
+
+.confirm-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Allow content to overflow for scrolling */
+  margin-bottom: 24px; /* Add bottom margin */
+}
+
+.confirm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 32px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(to bottom, #ffffff, #f9fafb);
+}
+
+.confirm-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.confirm-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.confirm-form {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.confirm-form-content {
+  padding: 24px 32px;
+}
+
+.confirm-form fieldset[disabled] input,
+.confirm-form fieldset[disabled] select,
+.confirm-form fieldset[disabled] textarea,
+.confirm-form fieldset[disabled] button {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.confirm-form .form-section-collapsible {
+  margin-bottom: 24px;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.confirm-actions .btn-outline,
+.confirm-actions .btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.confirm-actions .btn-outline:disabled,
+.confirm-actions .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .transaction-confirm-page {
+    padding: 16px;
+  }
+
+  .confirm-header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+  }
+
+  .confirm-form-content {
+    padding: 16px;
+  }
+
+  .confirm-actions {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .confirm-actions .btn-outline,
+  .confirm-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,13 +1,15 @@
 import { FormProvider } from 'react-hook-form'
 import { FiX, FiInfo } from 'react-icons/fi'
 import { useTransactionForm } from '../../hooks/useTransactionForm'
+import { useTransactionModalStore } from '../../store/useTransactionModalStore'
 import type { TransactionCategory } from '../../constants'
 import { TransactionFormProvider } from '../../context/TransactionFormContext'
 
-// Import trực tiếp 3 Form nhỏ
+// Import forms
 import { TransactionDetailsForm } from '../form/TransactionDetailsForm'
 import { DocumentAttachmentForm } from '../form/DocumentAttachmentForm'
 import { InternalCommentsForm } from '../form/InternalCommentsForm'
+import { TransactionConfirmOverlay } from '../confirm'
 
 interface Props {
   type: TransactionCategory
@@ -15,6 +17,7 @@ interface Props {
 }
 
 export function TransactionFormModal({ type, onClose }: Props) {
+  const { showConfirm } = useTransactionModalStore()
   const {
     form,
     handleSubmit,
@@ -83,16 +86,32 @@ export function TransactionFormModal({ type, onClose }: Props) {
 
               {/* Footer */}
               <div className="modal-footer-fixed">
-                <button type="button" onClick={handleClose} className="btn-outline">Close</button>
+                <button type="button" onClick={handleClose} className="btn-outline">
+                  Close
+                </button>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button type="button" onClick={onSaveAndClose} className="btn-secondary">Save And Close</button>
-                  <button type="submit" className="btn-primary">Save And Submit</button>
+                  <button 
+                    type="button" 
+                    onClick={onSaveAndClose} 
+                    className="btn-secondary"
+                  >
+                    Save And Close
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn-primary"
+                  >
+                    Save And Submit
+                  </button>
                 </div>
               </div>
             </form>
           </FormProvider>
         </TransactionFormProvider>
       </div>
+
+      {/* Confirm Overlay - shows on top of form modal */}
+      {showConfirm && <TransactionConfirmOverlay category={type} />}
     </div>
   )
 }

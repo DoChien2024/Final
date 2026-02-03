@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import { TransactionToolbar } from './form/share/TransactionToolbar'
 import { TransactionFormModal } from './index'
-import type { TransactionCategory } from '../constants'
+import { useTransactionModalStore } from '../store/useTransactionModalStore'
 import Toast from '@/components/ui/Toast'
 
 export default function TransactionPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean; type: TransactionCategory | null 
-  }>({ isOpen: false, type: null })
-
-  const handleCloseModal = () => setModalState({ isOpen: false, type: null })
+  const { isOpen, category, openModal, closeModal } = useTransactionModalStore()
 
   return (
     <>
@@ -21,8 +17,8 @@ export default function TransactionPage() {
             isDropdownOpen={isDropdownOpen}
             onToggleDropdown={() => setIsDropdownOpen(!isDropdownOpen)}
             onSelectType={(type) => {
-              setModalState({ isOpen: true, type });
-              setIsDropdownOpen(false);
+              openModal(type)
+              setIsDropdownOpen(false)
             }}
           />
         </div>
@@ -34,9 +30,9 @@ export default function TransactionPage() {
         </div>
       </div>
 
-      {/* Gọi Modal tách biệt */}
-      {modalState.isOpen && modalState.type && (
-        <TransactionFormModal type={modalState.type} onClose={handleCloseModal} />
+      {/* Modal will hide itself when on confirm page */}
+      {isOpen && category && (
+        <TransactionFormModal type={category} onClose={closeModal} />
       )}
       <Toast />
     </>

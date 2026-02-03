@@ -36,9 +36,7 @@ export const transactionFormSchema = z.object({
 
   currency: z.string().min(1, REQUIRED_MSG),
 
-  amount: z.coerce
-    .number({ message: REQUIRED_MSG })
-    .positive(REQUIRED_MSG),
+  amount: z.coerce.number().nullable().optional(),
 
   fees: z.coerce.number().nullable().optional(),
   bankCharges: z.coerce.number().nullable().optional(),
@@ -47,8 +45,11 @@ export const transactionFormSchema = z.object({
   effectiveDate: z.coerce.date({ message: REQUIRED_MSG }),
   createdDate: z.coerce.date().optional(),
 
-  bankAccount: z.string().min(1, REQUIRED_MSG),
+  bankAccount: z.string().optional(),
   description: z.string().min(1, REQUIRED_MSG),
+  
+  // Store bank options count for conditional validation
+  _hasBankOptions: z.boolean().optional(),
 
   supportingDocs: z.array(z.instanceof(File)).optional(),
   internalComments: z.string().optional(),
@@ -88,6 +89,30 @@ export const transactionFormSchema = z.object({
         path: ['effectiveDate'],
         message: REQUIRED_MSG,
       })
+    }
+
+    // Amount validation - only required for non-Coupon Payment types
+    if (data.transactionType !== 'Coupon Payment') {
+      if (!data.amount || data.amount <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['amount'],
+          message: REQUIRED_MSG,
+        })
+      }
+    }
+
+    // Bank Account validation - only if there are bank options available
+    // Skip validation for Coupon Payment (uses couponPayments.bankAccountTo)
+    if (data.transactionType !== 'Coupon Payment') {
+      // Only validate if _hasBankOptions is true (bank options available)
+      if (data._hasBankOptions && (!data.bankAccount || data.bankAccount.trim() === '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['bankAccount'],
+          message: REQUIRED_MSG,
+        })
+      }
     }
 
     // Coupon Payment specific validation (only when type is Coupon Payment)

@@ -20,7 +20,8 @@ export function TransactionFormCoupon() {
     formattedOptions, 
     minDate, 
     maxDate,
-    onChange 
+    onChange,
+    mode
   } = useTransactionFormContext()
   
   // Watch all values at once
@@ -38,7 +39,6 @@ export function TransactionFormCoupon() {
 
   const { isinOptions } = formattedOptions
 
-  // Stable ref for onChange.currency to prevent re-renders
   const onChangeCurrencyRef = useRef(onChange.currency)
   useEffect(() => {
     onChangeCurrencyRef.current = onChange.currency
@@ -49,14 +49,12 @@ export function TransactionFormCoupon() {
     if (!isinValue) return
     
     setValue('description', `Coupon Payment ${isinValue}`)
-    
-    // Set payment date to today if not set
+  
     if (!paymentDate) {
       setValue('paymentDate', new Date())
     }
   }, [setValue, paymentDate])
 
-  // Auto-fill security name and currency when ISIN detail loaded
   useEffect(() => {
     if (isinDetail?.data) {
       setValue('securityName', isinDetail.data.securityName)
@@ -119,6 +117,7 @@ export function TransactionFormCoupon() {
             isLoading={loadingStates.isins}
             placeholder="Select ISIN"
             extendOnChange={handleIsinChange}
+            disabled={mode === 'submit'}
           />
           {errors.isin && <span className="form-error">{errors.isin.message}</span>}
         </div>
@@ -157,6 +156,7 @@ export function TransactionFormCoupon() {
             required
             tooltip="Percentage rate for coupon payment"
             onChange={handleCouponRateChange}
+            disabled={mode === 'submit'}
           />
 
           {/* Payment Details Table */}
@@ -171,6 +171,7 @@ export function TransactionFormCoupon() {
                 holdings={holdings}
                 bankAccounts={options.bankAccounts}
                 isLoadingBanks={loadingStates.bankAccounts}
+                isDisabled={mode === 'submit'}
               />
             )}
             {errors.couponPayments && typeof errors.couponPayments === 'object' && 'message' in errors.couponPayments && (
@@ -195,6 +196,7 @@ export function TransactionFormCoupon() {
             required
             minDate={minDate}
             maxDate={maxDate}
+            disabled={mode === 'submit'}
           />
 
           {/* Description */}
@@ -203,6 +205,7 @@ export function TransactionFormCoupon() {
             label="Description"
             required
             fullWidth
+            disabled={mode === 'submit'}
           />
         </>
       )}

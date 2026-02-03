@@ -1,15 +1,13 @@
 import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTransactionModalStore } from '../store/useTransactionModalStore'
 
 import { transactionFormSchema, minDate, maxDate } from '../schema'
 import type { TransactionCategory } from '../constants'
 import type { TransactionFormValues } from '../types'
 import { useTransactionOptions } from './useTransactionOptions'
 import { useTransactionFieldHandlers } from './useTransactionFieldHandlers'
-import { createCashTransaction } from '../api'
-import { buildTransactionPayload } from '../utils/payloadBuilder'
-import { useApiMutation } from '@/hooks/useApiMutation'
 
 interface UseTransactionFormProps {
   category: TransactionCategory
@@ -33,9 +31,12 @@ const DEFAULT_FORM_VALUES: TransactionFormValues = {
   description: '',
   supportingDocs: [],
   internalComments: '',
+  _hasBankOptions: false,
 }
 
 export const useTransactionForm = ({ category, onClose }: UseTransactionFormProps) => {
+  const { openConfirm } = useTransactionModalStore()
+  
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema) as any,
     mode: 'onChange',
@@ -63,34 +64,43 @@ export const useTransactionForm = ({ category, onClose }: UseTransactionFormProp
     bankAccount: handlers.handleBankAccountChange,
   }
 
-  const handleSuccess = useCallback(() => {
-    reset(DEFAULT_FORM_VALUES)
-    onClose()
-  }, [reset, onClose])
-
-  const submitMutation = useApiMutation(
-    createCashTransaction,
-    { onSuccess: handleSuccess, successMessage: 'Transaction submitted successfully!' }
-  )
-
-  const saveMutation = useApiMutation(
-    createCashTransaction,
-    { onSuccess: handleSuccess, successMessage: 'Transaction saved as draft!' }
-  )
-
-  const onSubmit = useCallback(
-    async (data: TransactionFormValues) => {
-      const action = data.status === 'Complete' ? 'request-complete' : 'request-pending'
-      await submitMutation(buildTransactionPayload(data, action))
+  // Save and Submit: Full validation, show confirm page
+  const onSaveAndSubmit = useCallback(
+    (data: TransactionFormValues) => {
+      console.log('=== FORM: onSaveAndSubmit called ===')
+      console.log('Validated data:', data)
+      openConfirm(data, 'submit')
     },
-    [submitMutation]
+    [openConfirm]
   )
 
+  // Handle validation errors
+  const onSaveAndSubmitError = useCallback(
+    (errors: any) => {
+      console.log('=== FORM: Validation errors ==>', errors)
+      
+      // Scroll to first error field
+      setTimeout(() => {
+        const firstErrorField = Object.keys(errors)[0]
+        const element = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          element.focus()
+        }
+      }, 100)
+    },
+    []
+  )
+
+  // Save and Close: No validation, show confirm page
   const onSaveAndClose = useCallback(
-    async () => {
-      await saveMutation(buildTransactionPayload(getValues(), 'request-draft'))
+    () => {
+      const rawData = getValues()
+      console.log('=== FORM: onSaveAndClose called ===')
+      console.log('Raw data (no validation):', rawData)
+      openConfirm(rawData, 'draft')
     },
-    [getValues, saveMutation]
+    [getValues, openConfirm]
   )
 
   const handleClose = useCallback(() => {
@@ -103,7 +113,7 @@ export const useTransactionForm = ({ category, onClose }: UseTransactionFormProp
   return {
     form,
     control,
-    handleSubmit: handleSubmit(onSubmit),
+    handleSubmit: handleSubmit(onSaveAndSubmit, onSaveAndSubmitError),
     options,
     loadingStates,
     transactionTypeOptions,

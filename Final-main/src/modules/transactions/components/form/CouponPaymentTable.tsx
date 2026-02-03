@@ -9,9 +9,10 @@ interface Props {
   holdings: IsinHolding[]
   bankAccounts: BankAccount[]
   isLoadingBanks: boolean
+  isDisabled?: boolean
 }
 
-export function CouponPaymentTable({ holdings, bankAccounts, isLoadingBanks }: Props) {
+export function CouponPaymentTable({ holdings, bankAccounts, isLoadingBanks, isDisabled = false }: Props) {
   const { control, setValue, watch, trigger, formState: { errors } } = useFormContext<TransactionFormValues>()
   
   const couponPayments = watch('couponPayments') || []
@@ -160,6 +161,7 @@ export function CouponPaymentTable({ holdings, bankAccounts, isLoadingBanks }: P
                         isClearable
                         placeholder="Select bank"
                         styles={getSelectStyles(!!hasError?.bankAccountTo)}
+                        isDisabled={isDisabled}
                       />
                     )}
                   />
@@ -198,6 +200,7 @@ export function CouponPaymentTable({ holdings, bankAccounts, isLoadingBanks }: P
                         allowNegative={false}
                         className={`form-table-input-field ${hasError?.cashOrderAmt ? 'error' : ''}`}
                         style={{ textAlign: 'right' }}
+                        disabled={isDisabled}
                       />
                     )}
                   />
