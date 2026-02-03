@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchListIsin, fetchIsinHolding } from '../api'
+import { fetchListIsin, fetchIsinHolding, fetchIsinDetail } from '../api'
 
 // Hook để lấy danh sách ISIN
 export const useGetListIsins = () => {
@@ -18,14 +18,11 @@ export const useGetIsinHolding = (isin?: string) => {
   })
 }
 
-// Hook tổng hợp cho ISIN
-export const useIsin = () => {
-  const { data, isLoading } = useGetListIsins()
-
-  return {
-    useGetListIsins,
-    useGetIsinHolding,
-    isins: data?.data || [],
-    isLoading,
-  }
+// Hook để lấy chi tiết ISIN
+export const useGetIsinDetail = (isin?: string) => {
+  return useQuery({
+    queryKey: ['isinDetail', isin],
+    queryFn: () => fetchIsinDetail(isin!),
+    enabled: !!isin,
+  })
 }

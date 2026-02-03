@@ -2,6 +2,7 @@ import { FormProvider } from 'react-hook-form'
 import { FiX, FiInfo } from 'react-icons/fi'
 import { useTransactionForm } from '../../hooks/useTransactionForm'
 import type { TransactionCategory } from '../../constants'
+import { TransactionFormProvider } from '../../context/TransactionFormContext'
 
 // Import trực tiếp 3 Form nhỏ
 import { TransactionDetailsForm } from '../form/TransactionDetailsForm'
@@ -19,10 +20,38 @@ export function TransactionFormModal({ type, onClose }: Props) {
     handleSubmit,
     onSaveAndClose,
     handleClose,
-    ...fieldProps // Gom tất cả transactionTypeOptions, options, loadingStates...
+    options,
+    loadingStates,
+    transactionTypeOptions,
+    transactionStatusOptions,
+    fieldVisibility,
+    formattedOptions,
+    minDate,
+    maxDate,
+    onChange,
+    transactionType,
+    clientName,
+    currency,
   } = useTransactionForm({ category: type, onClose })
 
-  const hasSelectedType = !!fieldProps.watchedValues.transactionType
+  const hasSelectedType = !!transactionType
+
+  const contextValue = {
+    form,
+    transactionTypeOptions,
+    transactionStatusOptions,
+    options,
+    loadingStates,
+    fieldVisibility,
+    formattedOptions,
+    minDate,
+    maxDate,
+    transactionType,
+    clientName,
+    currency,
+    onChange,
+    type: (type === 'debit' ? 'Debit' : 'Credit') as 'Debit' | 'Credit',
+  }
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
@@ -35,37 +64,34 @@ export function TransactionFormModal({ type, onClose }: Props) {
           <button onClick={handleClose} className="modal-close-btn"><FiX /></button>
         </div>
 
-        <FormProvider {...form}>
-          <form onSubmit={handleSubmit} className="modal-form-fullscreen">
-            {/* Info Banner */}
-            <div className="info-banner">
-              <FiInfo className="info-icon" />
-              <p className="info-message">
-                This transaction is in <strong>Draft</strong> status. Please update the transaction details before submitting...
-              </p>
-            </div>
-
-            {/* Render trực tiếp các form con - Thay thế cho TransactionFormFields */}
-            <div className="transaction-form-fields">
-              <TransactionDetailsForm
-                {...fieldProps} 
-                showAllFields={hasSelectedType}
-                type={type === 'debit' ? 'Debit' : 'Credit'}
-              />
-              <DocumentAttachmentForm defaultOpen={hasSelectedType} />
-              <InternalCommentsForm defaultOpen={hasSelectedType} />
-            </div>
-
-            {/* Footer */}
-            <div className="modal-footer-fixed">
-              <button type="button" onClick={handleClose} className="btn-outline">Close</button>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="button" onClick={onSaveAndClose} className="btn-secondary">Save And Close</button>
-                <button type="submit" className="btn-primary">Save And Submit</button>
+        <TransactionFormProvider value={contextValue}>
+          <FormProvider {...form}>
+            <form onSubmit={handleSubmit} className="modal-form-fullscreen">
+              {/* Info Banner */}
+              <div className="info-banner">
+                <FiInfo className="info-icon" />
+                <p className="info-message">
+                  This transaction is in <strong>Draft</strong> status. Please update the transaction details before submitting...
+                </p>
               </div>
-            </div>
-          </form>
-        </FormProvider>
+
+              <div className="transaction-form-fields">
+                <TransactionDetailsForm />
+                <DocumentAttachmentForm defaultOpen={hasSelectedType} />
+                <InternalCommentsForm defaultOpen={hasSelectedType} />
+              </div>
+
+              {/* Footer */}
+              <div className="modal-footer-fixed">
+                <button type="button" onClick={handleClose} className="btn-outline">Close</button>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button type="button" onClick={onSaveAndClose} className="btn-secondary">Save And Close</button>
+                  <button type="submit" className="btn-primary">Save And Submit</button>
+                </div>
+              </div>
+            </form>
+          </FormProvider>
+        </TransactionFormProvider>
       </div>
     </div>
   )

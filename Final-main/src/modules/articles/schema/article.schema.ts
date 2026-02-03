@@ -1,6 +1,5 @@
 import { z } from 'zod'
-
-const REQUIRED_MSG = 'This field is required.'
+import { REQUIRED_MSG } from '@/utils/validationSchemas'
 
 // Base schema shared between create and edit
 const articleBaseSchema = {

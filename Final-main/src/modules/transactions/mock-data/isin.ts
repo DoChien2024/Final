@@ -1,46 +1,71 @@
-import type { IsinHolding } from "./types";
+import type { IsinHolding } from "../types";
 
 export const mockIsins = [
   {
-    isin: "ISIN1",
-    securityName: "Security 1",
-    currency: "EUR",
+    isin: "ISIN19012026",
+    securityName: "Vietnam Government Bond 2026",
+    currency: "VND",
   },
   {
-    isin: "ISIN2",
-    securityName: "Security 2",
+    isin: "ISIN20031025",
+    securityName: "Corporate Bond Series A",
     currency: "USD",
   },
 ];
 
 export const mockIsinHolding: Record<string, IsinHolding[]> = {
-  ISIN1: [
+  ISIN19012026: [
     {
-      organizationName: "Org A",
-      subOrganizationName: "Sub Org A1",
-      effectiveValueAmt: "100000.00",
+      clientName: "VIETNAM Official 9999 sos VNVC",
+      organizationName: "VIETNAM Official",
+      organizationNum: "PFL-0JSKBG438987V",
+      subOrganizationName: "VIETNAM Official sub-org 9999",
+      subOrganizationNum: "PFL-0JF2RAR548R1Y",
+      subAccountNum: null,
+      effectiveValueAmt: 100000.00,
+      currency: "VND",
     },
     {
-      organizationName: "Org A",
-      subOrganizationName: "Sub Org A2",
-      effectiveValueAmt: "150000.00",
+      clientName: "ABC Corporation",
+      organizationName: "ABC Corp",
+      organizationNum: "PFL-ABC123456789",
+      subOrganizationName: "ABC Sub Org 1",
+      subOrganizationNum: "PFL-SUB001",
+      subAccountNum: "ACC-001",
+      effectiveValueAmt: 150000.00,
+      currency: "VND",
     },
     {
-      organizationName: "Org A",
-      subOrganizationName: "Sub Org A3",
-      effectiveValueAmt: "200000.00",
+      clientName: "XYZ Holdings Ltd",
+      organizationName: "XYZ Holdings",
+      organizationNum: "PFL-XYZ987654321",
+      subOrganizationName: "XYZ Sub Org A",
+      subOrganizationNum: "PFL-SUBA",
+      subAccountNum: null,
+      effectiveValueAmt: 200000.00,
+      currency: "VND",
     },
   ],
-  ISIN2: [
+  ISIN20031025: [
     {
-      organizationName: "Org B",
-      subOrganizationName: "Sub Org B1",
-      effectiveValueAmt: "250000.00",
+      clientName: "Global Investment Fund",
+      organizationName: "Global Invest",
+      organizationNum: "PFL-GLB111222333",
+      subOrganizationName: "Global Sub 1",
+      subOrganizationNum: "PFL-GLBSUB1",
+      subAccountNum: "GIF-001",
+      effectiveValueAmt: 250000.00,
+      currency: "USD",
     },
     {
-      organizationName: "Org B",
-      subOrganizationName: "Sub Org B2",
-      effectiveValueAmt: "300000.00",
+      clientName: "Pacific Trust Co",
+      organizationName: "Pacific Trust",
+      organizationNum: "PFL-PAC444555666",
+      subOrganizationName: "Pacific Sub 2",
+      subOrganizationNum: "PFL-PACSUB2",
+      subAccountNum: null,
+      effectiveValueAmt: 300000.00,
+      currency: "USD",
     },
   ],
 };

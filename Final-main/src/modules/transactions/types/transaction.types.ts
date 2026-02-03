@@ -45,9 +45,27 @@ export interface Isin {
 }
 
 export interface IsinHolding {
+  clientName: string
   organizationName: string
+  organizationNum: string
   subOrganizationName: string
-  effectiveValueAmt: string
+  subOrganizationNum: string
+  subAccountNum: string | null
+  effectiveValueAmt: number
+  currency: string
+}
+
+// ==================== COUPON PAYMENT TYPE ====================
+
+export interface CouponPaymentRow {
+  clientName: string
+  organizationNum: string
+  subOrganizationNum: string
+  subAccountNum: string | null
+  effectiveValueAmt: number
+  cashOrderAmt: number
+  currency: string
+  bankAccountTo: string
 }
 
 // ==================== FORM VALUES TYPE ====================
@@ -56,21 +74,28 @@ import type { TransactionType, TransactionStatus } from '../constants'
 
 export interface TransactionFormValues {
   transactionType: TransactionType | ''
-  status: TransactionStatus
-  clientName: string
-  subOrgName: string
-  transactionId: string
+  status: TransactionStatus | ''
+  clientName?: string
+  subOrgName?: string
+  transactionId?: string
   currency: string
   amount: number | null
-  fees: number | null
-  bankCharges: number | null
-  gstAmount: number | null
+  fees?: number | null
+  bankCharges?: number | null
+  gstAmount?: number | null
   effectiveDate: Date
   bankAccount: string
   description: string
-  createdDate: Date
-  supportingDocs: File[]
-  internalComments: string
+  createdDate?: Date
+  supportingDocs?: File[]
+  internalComments?: string
+  // Coupon Payment specific fields
+  isin?: string
+  securityName?: string
+  couponPercentageRate?: number | null
+  paymentDate?: Date
+  couponPayments?: CouponPaymentRow[]
+  totalCouponAmount?: number
 }
 
 // ==================== OPTIONS & LOADING TYPE ====================
@@ -80,6 +105,7 @@ export interface TransactionOptions {
   subOrgs: SubOrganization[] | any[]
   currencies: Currency[] | string[]
   bankAccounts: BankAccount[] | any[]
+  isins?: Isin[]
 }
 
 export interface LoadingStates {
@@ -87,4 +113,33 @@ export interface LoadingStates {
   subOrgs: boolean
   currencies: boolean
   bankAccounts: boolean
+  isins?: boolean
+}
+
+// ==================== API PAYLOAD TYPES ====================
+
+export interface CashTransactionPayload {
+  action: 'request-draft' | 'request-pending' | 'request-complete'
+  data: {
+    orgNum?: string
+    subOrgNum?: string
+    transactionType: string
+    currency: string
+    amount: number
+    effectiveDo: string // format: YYYY-MM-DD
+    description: string
+    feesAmt?: number | null
+    gstAmt?: number | null
+    bankChargesAmt?: number | null
+    bankAccountUid?: string
+    createdDo?: string
+    comments?: string
+    files?: string[]
+    // Coupon Payment specific
+    couponPayments?: CouponPaymentRow[]
+    totalCouponAmount?: number
+    isin?: string
+    couponPercentageRate?: number
+    paymentDo?: string
+  }
 }

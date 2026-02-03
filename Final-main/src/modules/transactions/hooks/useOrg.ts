@@ -34,17 +34,3 @@ export const useGetListBankAccounts = (currency?: string, type?: string) => {
     enabled: !!currency,
   })
 }
-
-// Hook tổng hợp cho Org (giữ tương thích ngược)
-export const useOrg = () => {
-  const { data, isLoading } = useGetListOrgs()
-  const { data: subOrgData } = useGetListSubOrgs(data?.data?.[0]?.id)
-
-  return {
-    useGetListOrgs,
-    useGetListSubOrgs,
-    orgs: data?.data || [],
-    subOrgs: subOrgData?.data || [],
-    isLoading,
-  }
-}

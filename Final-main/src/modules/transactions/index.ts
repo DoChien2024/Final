@@ -1,10 +1,6 @@
 // Pages
 export { default as TransactionPage } from './components/TransactionPage'
 
-// Components
-// export { TransactionFormFields } from './components/TransactionFormFields'
-
-
 // Hooks
 export { useTransactionForm } from './hooks'
 export * from './hooks/useOrg'

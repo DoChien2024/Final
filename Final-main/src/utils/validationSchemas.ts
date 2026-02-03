@@ -1,8 +1,11 @@
 import { z } from 'zod'
 
+// ========== COMMON VALIDATION MESSAGES ==========
+
+export const REQUIRED_MSG = 'This field is required.'
+
 // ========== COMMON VALIDATION SCHEMAS ==========
 
-const REQUIRED_MSG = 'This field is required.'
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MIN_MSG = `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`
 

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { TRANSACTION_TYPES, TRANSACTION_STATUSES } from '../constants'
-
-const REQUIRED_MSG = 'This field is required'
+import { REQUIRED_MSG } from '@/utils/validationSchemas'
 
 // Tính min/max date (3 tháng)
 const getDateRange = () => {
@@ -23,10 +22,13 @@ export const { minDate, maxDate } = getDateRange()
 export const transactionFormSchema = z.object({
   transactionType: z.string().min(1, REQUIRED_MSG).refine(
     (val) => TRANSACTION_TYPES.includes(val as any),
-    { message: 'Invalid transaction type' }
+    { message: REQUIRED_MSG }
   ),
 
-  status: z.enum(TRANSACTION_STATUSES, { message: REQUIRED_MSG }),
+  status: z.union([
+    z.enum(TRANSACTION_STATUSES),
+    z.literal('')
+  ]).refine((val) => val !== '', { message: REQUIRED_MSG }),
 
   clientName: z.string().optional(),
   subOrgName: z.string().optional(),
@@ -36,7 +38,7 @@ export const transactionFormSchema = z.object({
 
   amount: z.coerce
     .number({ message: REQUIRED_MSG })
-    .positive('Amount must be greater than 0'),
+    .positive(REQUIRED_MSG),
 
   fees: z.coerce.number().nullable().optional(),
   bankCharges: z.coerce.number().nullable().optional(),
@@ -50,6 +52,23 @@ export const transactionFormSchema = z.object({
 
   supportingDocs: z.array(z.instanceof(File)).optional(),
   internalComments: z.string().optional(),
+
+  // Coupon Payment fields (only for Coupon Payment type)
+  isin: z.string().optional(),
+  securityName: z.string().optional(),
+  couponPercentageRate: z.coerce.number().nullable().optional(),
+  paymentDate: z.coerce.date().optional(),
+  couponPayments: z.array(z.object({
+    clientName: z.string(),
+    organizationNum: z.string(),
+    subOrganizationNum: z.string(),
+    subAccountNum: z.string().nullable(),
+    effectiveValueAmt: z.number(),
+    cashOrderAmt: z.number(),
+    currency: z.string(),
+    bankAccountTo: z.string(),
+  })).optional(),
+  totalCouponAmount: z.number().optional(),
 })
   .superRefine((data, ctx) => {
     // Validate effective date range
@@ -59,7 +78,7 @@ export const transactionFormSchema = z.object({
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['effectiveDate'],
-        message: 'Date cannot be more than 3 months in the past',
+        message: REQUIRED_MSG,
       })
     }
 
@@ -67,8 +86,63 @@ export const transactionFormSchema = z.object({
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['effectiveDate'],
-        message: 'Date cannot be more than 3 months in the future',
+        message: REQUIRED_MSG,
       })
+    }
+
+    // Coupon Payment specific validation (only when type is Coupon Payment)
+    if (data.transactionType === 'Coupon Payment') {
+      // Required fields for Coupon Payment
+      const couponRequiredFields = [
+        { field: 'isin', value: data.isin, message: REQUIRED_MSG },
+        { field: 'paymentDate', value: data.paymentDate, message: REQUIRED_MSG },
+      ] as const
+
+      couponRequiredFields.forEach(({ field, value, message }) => {
+        if (!value) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [field],
+            message,
+          })
+        }
+      })
+
+      // Coupon rate validation
+      if (!data.couponPercentageRate || data.couponPercentageRate <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['couponPercentageRate'],
+          message: REQUIRED_MSG,
+        })
+      }
+
+      // Coupon payments validation
+      if (!data.couponPayments || data.couponPayments.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['couponPayments'],
+          message: REQUIRED_MSG,
+        })
+      } else {
+        // Validate each payment row
+        data.couponPayments.forEach((payment, index) => {
+          if (!payment.bankAccountTo) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['couponPayments', index, 'bankAccountTo'],
+              message: REQUIRED_MSG,
+            })
+          }
+          if (!payment.cashOrderAmt || payment.cashOrderAmt <= 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['couponPayments', index, 'cashOrderAmt'],
+              message: REQUIRED_MSG,
+            })
+          }
+        })
+      }
     }
   })
 

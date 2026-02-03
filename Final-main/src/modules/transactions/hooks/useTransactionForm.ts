@@ -1,235 +1,123 @@
-import { useEffect, useMemo, useCallback } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useCallback } from 'react'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import { transactionFormSchema, minDate, maxDate } from '../schema'
-import {
-  type TransactionCategory,
-  DEBIT_TRANSACTION_TYPES,
-  CREDIT_TRANSACTION_TYPES,
-  TRANSACTION_FIELD_CONFIG,
-  type FieldVisibility,
-} from '../constants'
-import type {
-  TransactionFormValues,
-  TransactionOptions,
-  LoadingStates,
-} from '../types'
-
-// Mock Data
-import { mockOrgs, mockSubOrgs } from '../mock-data/org'
-import { mockCurrencies } from '../mock-data/currency'
-import { mockBankAccounts } from '../mock-data/bank-account'
+import type { TransactionCategory } from '../constants'
+import type { TransactionFormValues } from '../types'
+import { useTransactionOptions } from './useTransactionOptions'
+import { useTransactionFieldHandlers } from './useTransactionFieldHandlers'
+import { createCashTransaction } from '../api'
+import { buildTransactionPayload } from '../utils/payloadBuilder'
+import { useApiMutation } from '@/hooks/useApiMutation'
 
 interface UseTransactionFormProps {
   category: TransactionCategory
   onClose: () => void
 }
 
+const DEFAULT_FORM_VALUES: TransactionFormValues = {
+  transactionType: '',
+  status: '',
+  clientName: '',
+  subOrgName: '',
+  transactionId: '-',
+  currency: '',
+  amount: null,
+  fees: null,
+  bankCharges: null,
+  gstAmount: null,
+  effectiveDate: new Date(),
+  createdDate: new Date(),
+  bankAccount: '',
+  description: '',
+  supportingDocs: [],
+  internalComments: '',
+}
+
 export const useTransactionForm = ({ category, onClose }: UseTransactionFormProps) => {
-  // ==================== FORM SETUP ====================
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema) as any,
     mode: 'onChange',
-    defaultValues: {
-      transactionType: '',
-      status: 'Draft',
-      clientName: '',
-      subOrgName: '',
-      transactionId: '-',
-      currency: '',
-      amount: null,
-      fees: null,
-      bankCharges: null,
-      gstAmount: null,
-      effectiveDate: new Date(),
-      createdDate: new Date(),
-      bankAccount: '',
-      description: '',
-      supportingDocs: [],
-      internalComments: '',
-    },
+    defaultValues: DEFAULT_FORM_VALUES,
   })
 
-  const { control, setValue, reset, handleSubmit, register, formState: { errors } } = form
+  const { control, setValue, reset, handleSubmit, watch, getValues } = form
+  const transactionType = watch('transactionType')
+  const clientName = watch('clientName')
+  const currency = watch('currency')
 
-  // ==================== WATCHED FIELDS ====================
-  const [transactionType, clientName, currency, bankAccount] = useWatch({
-    control,
-    name: ['transactionType', 'clientName', 'currency', 'bankAccount'],
+  const { transactionTypeOptions, transactionStatusOptions, options, loadingStates, fieldVisibility, formattedOptions } = useTransactionOptions({
+    category,
+    transactionType,
+    clientName,
+    currency,
   })
 
-  // ==================== COMPUTED: Transaction Type Options ====================
-  const transactionTypeOptions = useMemo(() => {
-    const types = category === 'debit' ? DEBIT_TRANSACTION_TYPES : CREDIT_TRANSACTION_TYPES
-    return types.map(t => ({ label: t, value: t }))
-  }, [category])
-
-  // ==================== COMPUTED: Field Visibility ====================
-  const fieldVisibility: FieldVisibility = useMemo(() => {
-    if (!transactionType || !TRANSACTION_FIELD_CONFIG[transactionType as keyof typeof TRANSACTION_FIELD_CONFIG]) {
-      return {
-        showClientFields: true,
-        showFees: false,
-        showBankCharges: false,
-        showGstAmount: false,
-        bankDirection: null,
-        descriptionAutoFill: '',
-        descriptionEditable: true,
-      }
-    }
-    return TRANSACTION_FIELD_CONFIG[transactionType as keyof typeof TRANSACTION_FIELD_CONFIG]
-  }, [transactionType])
-
-  // ==================== COMPUTED: Sub Orgs filtered by Client ====================
-  const filteredSubOrgs = useMemo(() => {
-    if (!clientName) return []
-    const selectedOrg = mockOrgs.find(org => org.id === clientName)
-    if (!selectedOrg) return []
-    // mockSubOrgs is a Record<string, any[]>
-    return mockSubOrgs[selectedOrg.id] || []
-  }, [clientName])
-
-  // ==================== COMPUTED: Bank Accounts filtered by Currency ====================
-  const filteredBankAccounts = useMemo(() => {
-    if (!currency) return [] // Empty list when no currency selected
-    return mockBankAccounts.filter(bank => bank.currency === currency)
-  }, [currency])
-
-  // ==================== ALL BANK ACCOUNTS (for autofill currency) ====================
-  const allBankAccounts = mockBankAccounts
-
-  // ==================== OPTIONS ====================
-  const options: TransactionOptions = useMemo(() => ({
-    orgs: mockOrgs,
-    subOrgs: filteredSubOrgs,
-    currencies: mockCurrencies,
-    bankAccounts: filteredBankAccounts,
-  }), [filteredSubOrgs, filteredBankAccounts])
-
-  // ==================== LOADING STATES (Mock - sẽ thay bằng real API) ====================
-  const loadingStates: LoadingStates = useMemo(() => ({
-    orgs: false,
-    subOrgs: false,
-    currencies: false,
-    bankAccounts: false,
-  }), [])
-
-  // ==================== EFFECTS ====================
+  const handlers = useTransactionFieldHandlers({ setValue, getValues, options })
   
-  // Effect: Reset subOrg khi client thay đổi & auto-select nếu chỉ có 1
-  useEffect(() => {
-    setValue('subOrgName', '')
-    
-    // Auto-select nếu có data
-    if (filteredSubOrgs.length === 1) {
-      const subOrgValue = filteredSubOrgs[0].subOrgId || filteredSubOrgs[0].id || ''
-      setValue('subOrgName', subOrgValue)
-    }
-  }, [clientName, filteredSubOrgs, setValue])
+  const onChange = {
+    transactionType: handlers.handleTransactionTypeChange,
+    clientName: handlers.handleClientChange,
+    currency: handlers.handleCurrencyChange,
+    bankAccount: handlers.handleBankAccountChange,
+  }
 
-  // Effect: Reset bankAccount khi currency thay đổi & auto-select nếu chỉ có 1
-  useEffect(() => {
-    setValue('bankAccount', '')
-    
-    // Auto-select nếu chỉ có 1 bank account
-    if (filteredBankAccounts.length === 1) {
-      setValue('bankAccount', filteredBankAccounts[0].bankAccountUid || '')
-    }
-  }, [currency, filteredBankAccounts, setValue])
-
-  // Effect: Auto-fill currency khi chọn bank account (nếu chưa có currency)
-  useEffect(() => {
-    if (bankAccount && !currency) {
-      const selectedBank = allBankAccounts.find(
-        bank => bank.bankAccountUid === bankAccount
-      )
-      if (selectedBank?.currency) {
-        setValue('currency', selectedBank.currency)
-      }
-    }
-  }, [bankAccount, currency, allBankAccounts, setValue])
-
-  // Effect: Auto-fill description khi transaction type thay đổi
-  useEffect(() => {
-    if (transactionType && fieldVisibility.descriptionAutoFill) {
-      setValue('description', fieldVisibility.descriptionAutoFill)
-    } else if (transactionType) {
-      setValue('description', '')
-    }
-  }, [transactionType, fieldVisibility.descriptionAutoFill, setValue])
-
-  // Effect: Reset form khi category thay đổi
-  useEffect(() => {
-    reset({
-      transactionType: '',
-      status: 'Draft',
-      clientName: '',
-      subOrgName: '',
-      transactionId: '-',
-      currency: '',
-      amount: null,
-      fees: null,
-      bankCharges: null,
-      gstAmount: null,
-      effectiveDate: new Date(),
-      createdDate: new Date(),
-      bankAccount: '',
-      description: '',
-      supportingDocs: [],
-      internalComments: '',
-    })
-  }, [category, reset])
-
-  // ==================== HANDLERS ====================
-  const onSubmit = useCallback((data: TransactionFormValues) => {
-    console.log('Submit Transaction:', data)
-    // TODO: Call API
-    onClose()
-  }, [onClose])
-
-  const onSaveAndClose = useCallback(() => {
-    const data = form.getValues()
-    console.log('Save Draft:', data)
-    // TODO: Call API save draft
-    onClose()
-  }, [form, onClose])
-
-  const handleClose = useCallback(() => {
-    reset()
+  const handleSuccess = useCallback(() => {
+    reset(DEFAULT_FORM_VALUES)
     onClose()
   }, [reset, onClose])
 
-  // ==================== RETURN ====================
+  const submitMutation = useApiMutation(
+    createCashTransaction,
+    { onSuccess: handleSuccess, successMessage: 'Transaction submitted successfully!' }
+  )
+
+  const saveMutation = useApiMutation(
+    createCashTransaction,
+    { onSuccess: handleSuccess, successMessage: 'Transaction saved as draft!' }
+  )
+
+  const onSubmit = useCallback(
+    async (data: TransactionFormValues) => {
+      const action = data.status === 'Complete' ? 'request-complete' : 'request-pending'
+      await submitMutation(buildTransactionPayload(data, action))
+    },
+    [submitMutation]
+  )
+
+  const onSaveAndClose = useCallback(
+    async () => {
+      await saveMutation(buildTransactionPayload(getValues(), 'request-draft'))
+    },
+    [getValues, saveMutation]
+  )
+
+  const handleClose = useCallback(() => {
+    reset(DEFAULT_FORM_VALUES)
+    onClose()
+  }, [reset, onClose])
+
+  const handleReset = useCallback(() => reset(DEFAULT_FORM_VALUES), [reset])
+
   return {
-    // Form
     form,
     control,
-    register,
-    errors,
     handleSubmit: handleSubmit(onSubmit),
-    
-    // Options
     options,
     loadingStates,
     transactionTypeOptions,
-    
-    // Field visibility
+    transactionStatusOptions,
     fieldVisibility,
-    
-    // Date constraints
+    formattedOptions,
     minDate,
     maxDate,
-    
-    // Handlers
+    onChange,
     onSaveAndClose,
     handleClose,
-    
-    // Watched values (for conditional rendering)
-    watchedValues: {
-      transactionType,
-      clientName,
-      currency,
-    },
+    handleReset,
+    transactionType,
+    clientName,
+    currency,
   }
 }

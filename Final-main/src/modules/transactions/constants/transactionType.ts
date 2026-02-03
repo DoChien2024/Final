@@ -60,32 +60,43 @@ const createConfig = (
 export const TRANSACTION_FIELD_CONFIG: Record<TransactionType, FieldVisibility> = {
   // --- DEBIT GROUP ---
   'Fee': createConfig(DEBIT_BASE, {
+    showFees: false,
+    showBankCharges: false,
     descriptionAutoFill: 'Fees',
   }),
 
   'Tax Withholding': createConfig(DEBIT_BASE, {
+    showFees: false,
+    showBankCharges: false,
     descriptionAutoFill: 'Tax Withholding',
   }),
 
   'Debit (Others)': createConfig(DEBIT_BASE, {
-    showFees: true,         // Override
-    showBankCharges: true,  // Override
+    showFees: false,
+    showBankCharges: false,
+    descriptionAutoFill: '',
     descriptionEditable: true,
   }),
 
   'Withdrawal': createConfig(DEBIT_BASE, {
     showFees: true,
     showBankCharges: true,
-    showGstAmount: true,    // có GST
+    showGstAmount: true,
     descriptionAutoFill: 'Withdrawal',
   }),
 
   // --- CREDIT GROUP ---
   'Coupon Payment': createConfig(CREDIT_BASE, {
+    showClientFields: false,
+    showFees: false,
+    showBankCharges: false,
     descriptionAutoFill: 'Coupon Payment',
   }),
 
   'Credit (Others)': createConfig(CREDIT_BASE, {
+    showFees: false,
+    showBankCharges: false,
+    descriptionAutoFill: '',
     descriptionEditable: true,
   }),
 
