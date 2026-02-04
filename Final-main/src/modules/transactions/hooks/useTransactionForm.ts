@@ -2,12 +2,13 @@ import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTransactionModalStore } from '../store/useTransactionModalStore'
+import { useToastStore } from '@/store/toastStore'
 
 import { transactionFormSchema, minDate, maxDate } from '../schema'
+import { getTransactionConfig } from '../constants'
 import type { TransactionCategory } from '../constants'
 import type { TransactionFormValues } from '../types'
 import { useTransactionOptions } from './useTransactionOptions'
-import { useTransactionFieldHandlers } from './useTransactionFieldHandlers'
 
 interface UseTransactionFormProps {
   category: TransactionCategory
@@ -36,10 +37,12 @@ const DEFAULT_FORM_VALUES: TransactionFormValues = {
 
 export const useTransactionForm = ({ category, onClose }: UseTransactionFormProps) => {
   const { openConfirm } = useTransactionModalStore()
+  const { showToast } = useToastStore()
   
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema) as any,
-    mode: 'onChange',
+    mode: 'onTouched', // Validate when field is touched/blurred
+    reValidateMode: 'onChange', // Re-validate on every change after first submission
     defaultValues: DEFAULT_FORM_VALUES,
   })
 
@@ -55,20 +58,57 @@ export const useTransactionForm = ({ category, onClose }: UseTransactionFormProp
     currency,
   })
 
-  const handlers = useTransactionFieldHandlers({ setValue, getValues, options })
+  // ==================== FIELD CHANGE HANDLERS ====================
+  
+  // Handler: Transaction Type Change
+  const handleTransactionTypeChange = useCallback(
+    (newType: string) => {
+      setValue('fees', null)
+      setValue('bankCharges', null)
+      setValue('gstAmount', null)
+      
+      const config = getTransactionConfig(newType)
+      setValue('description', config.descriptionAutoFill)
+    },
+    [setValue]
+  )
+
+  // Handler: Client Name Change
+  const handleClientChange = useCallback(() => {
+    setValue('subOrgName', '')
+  }, [setValue])
+
+  // Handler: Currency Change
+  const handleCurrencyChange = useCallback(() => {
+    setValue('bankAccount', '')
+  }, [setValue])
+
+  // Handler: Bank Account Change
+  const handleBankAccountChange = useCallback(
+    (bankAccountUid: string | null) => {
+      const currentCurrency = getValues('currency')
+      if (bankAccountUid && !currentCurrency && options.bankAccounts) {
+        const selectedBank = options.bankAccounts.find(
+          (bank: any) => bank.bankAccountUid === bankAccountUid
+        )
+        if (selectedBank?.currency) {
+          setValue('currency', selectedBank.currency)
+        }
+      }
+    },
+    [setValue, getValues, options.bankAccounts]
+  )
   
   const onChange = {
-    transactionType: handlers.handleTransactionTypeChange,
-    clientName: handlers.handleClientChange,
-    currency: handlers.handleCurrencyChange,
-    bankAccount: handlers.handleBankAccountChange,
+    transactionType: handleTransactionTypeChange,
+    clientName: handleClientChange,
+    currency: handleCurrencyChange,
+    bankAccount: handleBankAccountChange,
   }
 
   // Save and Submit: Full validation, show confirm page
   const onSaveAndSubmit = useCallback(
     (data: TransactionFormValues) => {
-      console.log('=== FORM: onSaveAndSubmit called ===')
-      console.log('Validated data:', data)
       openConfirm(data, 'submit')
     },
     [openConfirm]
@@ -77,7 +117,8 @@ export const useTransactionForm = ({ category, onClose }: UseTransactionFormProp
   // Handle validation errors
   const onSaveAndSubmitError = useCallback(
     (errors: any) => {
-      console.log('=== FORM: Validation errors ==>', errors)
+      const errorCount = Object.keys(errors).length
+      showToast(`Please fix ${errorCount} validation error(s) before submitting`, 'error')
       
       // Scroll to first error field
       setTimeout(() => {
@@ -89,19 +130,13 @@ export const useTransactionForm = ({ category, onClose }: UseTransactionFormProp
         }
       }, 100)
     },
-    []
+    [showToast]
   )
 
   // Save and Close: No validation, show confirm page
-  const onSaveAndClose = useCallback(
-    () => {
-      const rawData = getValues()
-      console.log('=== FORM: onSaveAndClose called ===')
-      console.log('Raw data (no validation):', rawData)
-      openConfirm(rawData, 'draft')
-    },
-    [getValues, openConfirm]
-  )
+  const onSaveAndClose = useCallback(() => {
+    openConfirm(getValues(), 'draft')
+  }, [getValues, openConfirm])
 
   const handleClose = useCallback(() => {
     reset(DEFAULT_FORM_VALUES)

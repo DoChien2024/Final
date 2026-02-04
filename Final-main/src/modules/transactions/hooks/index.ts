@@ -1,5 +1,5 @@
 export { useTransactionForm } from './useTransactionForm'
+export { useTransactionConfirm } from './useTransactionConfirm'
 export { useTransactionOptions } from './useTransactionOptions'
-export { useTransactionFieldHandlers } from './useTransactionFieldHandlers'
 export * from './useOrg'
 export * from './useIsin'

@@ -1,20 +1,7 @@
 import { createContext, useContext, ReactNode } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import type { TransactionFormValues, TransactionOptions, LoadingStates } from '../types'
+import type { TransactionFormValues, TransactionOptions, LoadingStates, SelectOption, FormattedOptions } from '../types'
 import type { FieldVisibility } from '../constants'
-
-interface SelectOption {
-  label: string
-  value: string
-}
-
-interface FormattedOptions {
-  orgOptions: SelectOption[]
-  subOrgOptions: SelectOption[]
-  currencyOptions: SelectOption[]
-  bankOptions: SelectOption[]
-  isinOptions: SelectOption[]
-}
 
 interface OnChangeHandlers {
   transactionType: (value: string) => void

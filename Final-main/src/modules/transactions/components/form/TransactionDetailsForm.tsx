@@ -1,10 +1,12 @@
 // TransactionDetailsForm.tsx
 import { FiChevronDown } from 'react-icons/fi'
+import { useFormContext } from 'react-hook-form'
 import { useTransactionFormContext } from '../../context/TransactionFormContext'
-import { TransactionFormUnified } from '../modal/TransactionFormUnified'
-import { TransactionFormCoupon } from '../modal/TransactionFormCoupon'
-import { StatusButtons } from '../form/share/StatusButtons'
-import { SelectController } from '../form/share/SelectController'
+import { TransactionFormUnified } from './TransactionFormUnified'
+import { TransactionFormCoupon } from './TransactionFormCoupon'
+import { StatusButtons } from './share/StatusButtons'
+import { SelectController } from './share/SelectController'
+import type { TransactionFormValues } from '../../types'
 
 export function TransactionDetailsForm() {
   const { 
@@ -12,11 +14,20 @@ export function TransactionDetailsForm() {
     transactionStatusOptions,
     transactionType,
     onChange,
-    type,
     mode
   } = useTransactionFormContext()
+  
+  const { getValues, formState: { errors } } = useFormContext<TransactionFormValues>()
+  const isReadOnly = !!mode
 
   const showAllFields = !!transactionType
+
+  // Helper to get label from options
+  const getLabel = (value: string | undefined, options: Array<{ label: string; value: string }>) => {
+    if (!value) return '-'
+    const option = options.find(opt => opt.value === value)
+    return option ? option.label : value
+  }
 
   // Use onChange handler from hook
   const handleTransactionTypeChange = (newValue: string | null) => {
@@ -35,6 +46,7 @@ export function TransactionDetailsForm() {
     // Use unified form for both Debit and Credit
     return <TransactionFormUnified />
   }
+  
   return (
     <details className="form-section-collapsible" open>
       <summary className="section-header">
@@ -49,23 +61,34 @@ export function TransactionDetailsForm() {
               Transaction Type <span className="required-asterisk">*</span>
             </label>
             <div className="form-table-input">
-              <SelectController
-                name="transactionType"
-                options={transactionTypeOptions}
-                extendOnChange={handleTransactionTypeChange}
-                disabled={mode === 'submit'}
-              />
+              {isReadOnly ? (
+                <span className="form-value-text">{getLabel(getValues('transactionType'), transactionTypeOptions)}</span>
+              ) : (
+                <>
+                  <SelectController
+                    name="transactionType"
+                    options={transactionTypeOptions}
+                    extendOnChange={handleTransactionTypeChange}
+                  />
+                  {errors.transactionType && <span className="form-error">{errors.transactionType.message}</span>}
+                </>
+              )}
             </div>
           </div>
 
           {/* Transaction Status */}
           <div className="form-table-row">
-            <label className="form-table-label">Transaction Status</label>
+            <label className="form-table-label">
+              Transaction Status <span className="required-asterisk">*</span>
+            </label>
             <div className="form-table-input">
-              <StatusButtons 
-                statuses={transactionStatusOptions.map(s => s.value)} 
-                disabled={mode === 'submit'}
-              />
+              {isReadOnly ? (
+                <span className="form-value-text">{getLabel(getValues('status'), transactionStatusOptions)}</span>
+              ) : (
+                <StatusButtons 
+                  statuses={transactionStatusOptions.map(s => s.value)} 
+                />
+              )}
             </div>
           </div>
 

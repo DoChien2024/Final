@@ -25,12 +25,10 @@ export const useGetListCurrencies = () => {
     queryFn: fetchListCurrency,
   })
 }
-
-// Hook để lấy danh sách Bank Account dựa theo currency
-export const useGetListBankAccounts = (currency?: string, type?: string) => {
+export const useGetListBankAccounts = (type?: string) => {
   return useQuery({
-    queryKey: ['bankAccounts', currency, type],
-    queryFn: () => fetchListBankAccount({ currency, type }),
-    enabled: !!currency,
+    queryKey: ['bankAccounts'], // Fixed key to prevent re-fetching
+    queryFn: () => fetchListBankAccount({ currency: undefined, type }), // Fetch all
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   })
 }

@@ -37,8 +37,6 @@ export function TransactionFormModal({ type, onClose }: Props) {
     currency,
   } = useTransactionForm({ category: type, onClose })
 
-  const hasSelectedType = !!transactionType
-
   const contextValue = {
     form,
     transactionTypeOptions,
@@ -80,8 +78,8 @@ export function TransactionFormModal({ type, onClose }: Props) {
 
               <div className="transaction-form-fields">
                 <TransactionDetailsForm />
-                <DocumentAttachmentForm defaultOpen={hasSelectedType} />
-                <InternalCommentsForm defaultOpen={hasSelectedType} />
+                <DocumentAttachmentForm defaultOpen={!!transactionType} />
+                <InternalCommentsForm defaultOpen={!!transactionType} />
               </div>
 
               {/* Footer */}

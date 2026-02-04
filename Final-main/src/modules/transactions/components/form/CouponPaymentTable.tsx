@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect, useRef } from 'react'
+import { useMemo, useCallback, useRef } from 'react'
 import { useFormContext, Controller } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
 import Select from 'react-select'
@@ -23,28 +23,6 @@ export function CouponPaymentTable({ holdings, bankAccounts, isLoadingBanks, isD
   
   // Get currency from first holding
   const displayCurrency = holdings[0]?.currency || 'EUR'
-
-  // Auto-fill payments when coupon rate changes (only for non-manually-edited rows)
-  useEffect(() => {
-    if (!couponRate || couponPayments.length === 0 || holdings.length === 0) return
-    
-    const shouldUpdate = couponPayments.some((payment, index) => {
-      if (manualEditRef.current.has(index)) return false
-      const expectedValue = (couponRate / 100) * holdings[index]?.effectiveValueAmt
-      return Math.abs(payment.cashOrderAmt - expectedValue) > 0.01
-    })
-    
-    if (shouldUpdate) {
-      const updatedPayments = couponPayments.map((payment, index) => {
-        if (manualEditRef.current.has(index)) return payment
-        return {
-          ...payment,
-          cashOrderAmt: (couponRate / 100) * holdings[index]?.effectiveValueAmt
-        }
-      })
-      setValue('couponPayments', updatedPayments)
-    }
-  }, [couponRate, holdings, couponPayments, setValue])
 
   // Memoize bank options to prevent recalculation
   const bankOptions = useMemo(() => 
@@ -153,23 +131,25 @@ export function CouponPaymentTable({ holdings, bankAccounts, isLoadingBanks, isD
                     name={`couponPayments.${index}.bankAccountTo`}
                     control={control}
                     render={({ field }) => (
-                      <Select
-                        options={bankOptions}
-                        value={bankOptions.find(opt => opt.value === field.value) || null}
-                        onChange={(opt) => handleBankAccountChange(index, opt?.value as string || '')}
-                        isLoading={isLoadingBanks}
-                        isClearable
-                        placeholder="Select bank"
-                        styles={getSelectStyles(!!hasError?.bankAccountTo)}
-                        isDisabled={isDisabled}
-                      />
+                      <div>
+                        <Select
+                          options={bankOptions}
+                          value={bankOptions.find(opt => opt.value === field.value) || null}
+                          onChange={(opt) => handleBankAccountChange(index, opt?.value as string || '')}
+                          isLoading={isLoadingBanks}
+                          isClearable
+                          placeholder="Select bank"
+                          styles={getSelectStyles(!!hasError?.bankAccountTo)}
+                          isDisabled={isDisabled}
+                        />
+                        {hasError?.bankAccountTo && (
+                          <span style={{ display: 'block', color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                            {hasError.bankAccountTo.message}
+                          </span>
+                        )}
+                      </div>
                     )}
                   />
-                  {hasError?.bankAccountTo && (
-                    <span style={{ color: '#ef4444', fontSize: '12px' }}>
-                      {hasError.bankAccountTo.message}
-                    </span>
-                  )}
                 </td>
 
                 {/* Value of Settled Holdings */}
@@ -186,29 +166,31 @@ export function CouponPaymentTable({ holdings, bankAccounts, isLoadingBanks, isD
                     name={`couponPayments.${index}.cashOrderAmt`}
                     control={control}
                     render={({ field }) => (
-                      <NumericFormat
-                        value={field.value ?? netPayment ?? 0}
-                        onValueChange={(values) => {
-                          const newValue = values.floatValue ?? 0
-                          field.onChange(newValue)
-                          handleNetPaymentChange(index, newValue)
-                        }}
-                        thousandSeparator=","
-                        decimalSeparator="."
-                        decimalScale={2}
-                        fixedDecimalScale
-                        allowNegative={false}
-                        className={`form-table-input-field ${hasError?.cashOrderAmt ? 'error' : ''}`}
-                        style={{ textAlign: 'right' }}
-                        disabled={isDisabled}
-                      />
+                      <div>
+                        <NumericFormat
+                          value={field.value ?? netPayment ?? 0}
+                          onValueChange={(values) => {
+                            const newValue = values.floatValue ?? 0
+                            field.onChange(newValue)
+                            handleNetPaymentChange(index, newValue)
+                          }}
+                          thousandSeparator=","
+                          decimalSeparator="."
+                          decimalScale={2}
+                          fixedDecimalScale
+                          allowNegative={false}
+                          className={`form-table-input-field ${hasError?.cashOrderAmt ? 'error' : ''}`}
+                          style={{ textAlign: 'right' }}
+                          disabled={isDisabled}
+                        />
+                        {hasError?.cashOrderAmt && (
+                          <span style={{ display: 'block', color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                            {hasError.cashOrderAmt.message}
+                          </span>
+                        )}
+                      </div>
                     )}
                   />
-                  {hasError?.cashOrderAmt && (
-                    <span style={{ color: '#ef4444', fontSize: '12px' }}>
-                      {hasError.cashOrderAmt.message}
-                    </span>
-                  )}
                 </td>
               </tr>
             )

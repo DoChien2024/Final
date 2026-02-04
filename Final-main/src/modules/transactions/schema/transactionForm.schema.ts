@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { TRANSACTION_TYPES, TRANSACTION_STATUSES } from '../constants'
+import { TRANSACTION_TYPES, TRANSACTION_STATUSES, getTransactionConfig } from '../constants'
 import { REQUIRED_MSG } from '@/utils/validationSchemas'
 
 // Tính min/max date (3 tháng)
@@ -60,111 +60,96 @@ export const transactionFormSchema = z.object({
   couponPercentageRate: z.coerce.number().nullable().optional(),
   paymentDate: z.coerce.date().optional(),
   couponPayments: z.array(z.object({
-    clientName: z.string(),
-    organizationNum: z.string(),
-    subOrganizationNum: z.string(),
-    subAccountNum: z.string().nullable(),
-    effectiveValueAmt: z.number(),
-    cashOrderAmt: z.number(),
-    currency: z.string(),
-    bankAccountTo: z.string(),
+    clientName: z.string().optional(),
+    organizationNum: z.string().optional(),
+    subOrganizationNum: z.string().optional(),
+    subAccountNum: z.string().nullable().optional(),
+    effectiveValueAmt: z.number().optional(),
+    cashOrderAmt: z.coerce.number().nullable().optional(),
+    currency: z.string().optional(),
+    bankAccountTo: z.string().optional(),
   })).optional(),
   totalCouponAmount: z.number().optional(),
 })
   .superRefine((data, ctx) => {
-    // Validate effective date range
-    const { minDate, maxDate } = getDateRange()
+    // Get field visibility config based on transaction type
+    const config = getTransactionConfig(data.transactionType)
     
-    if (data.effectiveDate < minDate) {
+    // Helper: Add validation error
+    const addError = (path: string | (string | number)[], message: string) => {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['effectiveDate'],
-        message: REQUIRED_MSG,
+        path: Array.isArray(path) ? path : [path],
+        message,
       })
     }
 
-    if (data.effectiveDate > maxDate) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['effectiveDate'],
-        message: REQUIRED_MSG,
-      })
+    // Helper: Validate required field
+    const validateRequired = (field: string, value: any) => {
+      if (!value || (typeof value === 'string' && value.trim() === '')) {
+        addError(field, REQUIRED_MSG)
+        return false
+      }
+      return true
     }
 
-    // Amount validation - only required for non-Coupon Payment types
+    // Helper: Validate positive number
+    const validatePositiveNumber = (field: string, value: number | null | undefined, label: string) => {
+      if (value !== null && value !== undefined && value < 0) {
+        addError(field, `${label} must be a positive number`)
+      }
+    }
+
+    // 1. Validate effective date range
+    const { minDate, maxDate } = getDateRange()
+    if (data.effectiveDate < minDate || data.effectiveDate > maxDate) {
+      addError('effectiveDate', REQUIRED_MSG)
+    }
+
+    // 2. Client Name validation - required when showClientFields is true
+    if (config.showClientFields) {
+      validateRequired('clientName', data.clientName)
+    }
+
+    // 3. Amount validation - only required for non-Coupon Payment types
     if (data.transactionType !== 'Coupon Payment') {
       if (!data.amount || data.amount <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['amount'],
-          message: REQUIRED_MSG,
-        })
+        addError('amount', REQUIRED_MSG)
       }
     }
 
-    // Bank Account validation - only if there are bank options available
-    // Skip validation for Coupon Payment (uses couponPayments.bankAccountTo)
-    if (data.transactionType !== 'Coupon Payment') {
-      // Only validate if _hasBankOptions is true (bank options available)
-      if (data._hasBankOptions && (!data.bankAccount || data.bankAccount.trim() === '')) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['bankAccount'],
-          message: REQUIRED_MSG,
-        })
-      }
+    // 4. Optional numeric fields validation
+    if (config.showFees) validatePositiveNumber('fees', data.fees, 'Fees')
+    if (config.showBankCharges) validatePositiveNumber('bankCharges', data.bankCharges, 'Bank charges')
+    if (config.showGstAmount) validatePositiveNumber('gstAmount', data.gstAmount, 'GST amount')
+
+    // 5. Bank Account validation - only if there are bank options available
+    if (data.transactionType !== 'Coupon Payment' && data._hasBankOptions) {
+      validateRequired('bankAccount', data.bankAccount)
     }
 
-    // Coupon Payment specific validation (only when type is Coupon Payment)
+    // 6. Coupon Payment specific validation
     if (data.transactionType === 'Coupon Payment') {
-      // Required fields for Coupon Payment
-      const couponRequiredFields = [
-        { field: 'isin', value: data.isin, message: REQUIRED_MSG },
-        { field: 'paymentDate', value: data.paymentDate, message: REQUIRED_MSG },
-      ] as const
-
-      couponRequiredFields.forEach(({ field, value, message }) => {
-        if (!value) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: [field],
-            message,
-          })
-        }
-      })
+      // Required fields
+      validateRequired('isin', data.isin)
+      validateRequired('paymentDate', data.paymentDate)
 
       // Coupon rate validation
       if (!data.couponPercentageRate || data.couponPercentageRate <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['couponPercentageRate'],
-          message: REQUIRED_MSG,
-        })
+        addError('couponPercentageRate', REQUIRED_MSG)
       }
 
       // Coupon payments validation
       if (!data.couponPayments || data.couponPayments.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['couponPayments'],
-          message: REQUIRED_MSG,
-        })
+        addError('couponPayments', REQUIRED_MSG)
       } else {
         // Validate each payment row
         data.couponPayments.forEach((payment, index) => {
           if (!payment.bankAccountTo) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ['couponPayments', index, 'bankAccountTo'],
-              message: REQUIRED_MSG,
-            })
+            addError(['couponPayments', index, 'bankAccountTo'], REQUIRED_MSG)
           }
           if (!payment.cashOrderAmt || payment.cashOrderAmt <= 0) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ['couponPayments', index, 'cashOrderAmt'],
-              message: REQUIRED_MSG,
-            })
+            addError(['couponPayments', index, 'cashOrderAmt'], REQUIRED_MSG)
           }
         })
       }

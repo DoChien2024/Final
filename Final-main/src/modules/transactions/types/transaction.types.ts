@@ -1,3 +1,18 @@
+// ==================== COMMON TYPES ====================
+
+export interface SelectOption {
+  label: string
+  value: string
+}
+
+export interface FormattedOptions {
+  orgOptions: SelectOption[]
+  subOrgOptions: SelectOption[]
+  currencyOptions: SelectOption[]
+  bankOptions: SelectOption[]
+  isinOptions: SelectOption[]
+}
+
 // ==================== ENTITY TYPES ====================
 
 export interface Organization {

@@ -1,13 +1,30 @@
-import { useFormContext, useController } from 'react-hook-form' // Import thêm useController
+import { useFormContext, useController } from 'react-hook-form'
 import { FiUpload, FiFile, FiX, FiChevronDown } from 'react-icons/fi'
 import type { TransactionFormValues } from '../../types'
+import { useTransactionFormContext } from '../../context/TransactionFormContext'
 
 interface Props {
   defaultOpen?: boolean
 }
 
+const READONLY_CONTAINER_STYLE = {
+  padding: '16px 20px',
+  backgroundColor: '#f9fafb',
+  borderRadius: '8px',
+  marginBottom: '12px'
+} as const
+
+const LABEL_STYLE = {
+  fontWeight: '500',
+  color: '#374151',
+  minWidth: '180px',
+  flexShrink: 0
+} as const
+
 export function DocumentAttachmentForm({ defaultOpen = true }: Props) {
   const { control } = useFormContext<TransactionFormValues>()
+  const { mode } = useTransactionFormContext()
+  const isReadOnly = !!mode
 
   const { field: { value: files = [], onChange } } = useController({
     name: 'supportingDocs',
@@ -23,13 +40,45 @@ export function DocumentAttachmentForm({ defaultOpen = true }: Props) {
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList) return
     const validFiles = Array.from(fileList).filter(validateFile)
-    if (validFiles.length) {
-      onChange([...files, ...validFiles])
-    }
+    if (validFiles.length) onChange([...files, ...validFiles])
   }
 
   const removeFile = (indexToRemove: number) => {
     onChange(files.filter((_, index) => index !== indexToRemove))
+  }
+
+  if (isReadOnly) {
+    return (
+      <div style={READONLY_CONTAINER_STYLE}>
+        <div style={{ 
+          display: 'flex',
+          gap: '40px',
+          alignItems: files.length > 0 ? 'flex-start' : 'center',
+          flexWrap: 'wrap'
+        }}>
+          <span style={LABEL_STYLE}>Document Attachment</span>
+          {files.length > 0 ? (
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              {files.map((file: File, index: number) => (
+                <div key={index} style={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: index < files.length - 1 ? '8px' : '0',
+                  color: '#4b5563'
+                }}>
+                  <FiFile style={{ flexShrink: 0 }} />
+                  <span style={{ wordBreak: 'break-word' }}>{file.name}</span>
+                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>({(file.size / 1024).toFixed(1)} KB)</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span style={{ color: '#6b7280' }}>-</span>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (

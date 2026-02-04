@@ -7,8 +7,6 @@ const MOCK_API = true // Set to false when backend endpoint is ready
 
 export const createCashTransaction = async (payload: CashTransactionPayload) => {
   if (MOCK_API) {
-    console.log('🔧 MOCK API: Creating transaction with payload:', payload)
-    
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000))
     

@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-
+import { REQUIRED_MSG } from '@/utils/validationSchemas';
 
 interface StatusButtonsProps {
   statuses: readonly string[];
@@ -10,10 +10,10 @@ interface StatusButtonsProps {
 }
 
 export function StatusButtons({ statuses, value, onChange, className = '', disabled = false }: StatusButtonsProps) {
-  // Nếu dùng trong react-hook-form thì lấy context, còn không thì dùng props
   const form = useFormContext();
   const currentStatus = value ?? (form ? form.watch('status') : undefined);
   const setValue = form ? form.setValue : undefined;
+  const statusError = form?.formState?.errors?.status;
 
   const handleClick = (status: string) => {
     if (disabled) return;
@@ -21,23 +21,25 @@ export function StatusButtons({ statuses, value, onChange, className = '', disab
     if (setValue) setValue('status', status);
   };
 
-  // Nếu disabled, chỉ hiển thị status đã chọn
   const displayStatuses = disabled && currentStatus ? [currentStatus] : statuses;
 
   return (
-    <div className={`status-buttons-row ${className}`}>
-      {displayStatuses.map((status) => (
-        <button
-          key={status}
-          type="button"
-          className={`status-btn-pill ${currentStatus === status ? 'active' : ''} status-${status.toLowerCase()}`}
-          onClick={() => handleClick(status)}
-          disabled={disabled}
-          style={disabled ? { cursor: 'not-allowed', opacity: 0.8 } : {}}
-        >
-          {status}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className={`status-buttons-row ${className}`}>
+        {displayStatuses.map((status) => (
+          <button
+            key={status}
+            type="button"
+            className={`status-btn-pill ${currentStatus === status ? 'active' : ''} status-${status.toLowerCase()}`}
+            onClick={() => handleClick(status)}
+            disabled={disabled}
+            style={disabled ? { cursor: 'not-allowed', opacity: 0.8 } : {}}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+      {statusError && <span className="form-error">{REQUIRED_MSG}</span>}
+    </>
   );
 }
