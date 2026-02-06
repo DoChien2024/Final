@@ -174,6 +174,7 @@ export const createTransactionColumns = () => [
       const status = info.getValue()
       const isCompleted = status.toLowerCase() === 'completed'
       const isPending = status.toLowerCase() === 'pending'
+      const isDraft = status.toLowerCase() === 'draft'
       
       return (
         <div style={{ minWidth: '100px' }}>
@@ -185,8 +186,8 @@ export const createTransactionColumns = () => [
               fontSize: '12px',
               fontWeight: '500',
               textTransform: 'uppercase',
-              backgroundColor: isCompleted ? '#d4edda' : isPending ? '#fff3cd' : '#f8d7da',
-              color: isCompleted ? '#155724' : isPending ? '#856404' : '#721c24',
+              backgroundColor: isCompleted ? '#d4edda' : isPending ? '#fff3cd' : isDraft ? '#e7f3ff' : '#f8d7da',
+              color: isCompleted ? '#155724' : isPending ? '#856404' : isDraft ? '#004085' : '#721c24',
             }}
           >
             {status}

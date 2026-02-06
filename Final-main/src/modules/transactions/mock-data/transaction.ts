@@ -150,14 +150,14 @@ export const mockTransactionList = [
     groupId: "GT0000469",
   },
   
-  // Another Deposit - USD
+  // Another Deposit - USD (Draft)
   {
     ...mockTransactionListItem,
     id: 693,
     transactionId: "TXCSH0015891",
     cashOrderNum: "CO-0PCJ9HBXFEWPS",
-    orderStatus: "pending-maker",
-    orderStatusAlias: "pending",
+    orderStatus: "draft",
+    orderStatusAlias: "draft",
     currency: "USD",
     bankAccountNum: "XXXXXXX822-USD",
     transactionType: "deposit",
@@ -222,14 +222,14 @@ export const mockTransactionList = [
     referenceNum: "WD-20260203-001",
   },
   
-  // Deposit with fees
+  // Deposit with fees (Draft)
   {
     ...mockTransactionListItem,
     id: 696,
     transactionId: "TXCSH0015894",
     cashOrderNum: "CO-0PCJ9HBXFEWPV",
-    orderStatus: "pending-maker",
-    orderStatusAlias: "pending",
+    orderStatus: "draft",
+    orderStatusAlias: "draft",
     transactionType: "deposit",
     transactionCategory: "credit",
     createDo: "2026-02-06",
