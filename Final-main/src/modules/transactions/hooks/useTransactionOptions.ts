@@ -1,28 +1,29 @@
 import { useMemo } from 'react'
-import type { TransactionCategory } from '../constants'
 import { getTransactionConfig, DEBIT_TRANSACTION_TYPES, CREDIT_TRANSACTION_TYPES, TRANSACTION_STATUSES } from '../constants'
 import { useGetListOrgs, useGetListSubOrgs, useGetListCurrencies, useGetListBankAccounts } from './useOrg'
 import { useGetListIsins } from './useIsin'
+import { useTransactionModalStore } from '../store/useTransactionModalStore'
 import type { TransactionOptions, LoadingStates, FormattedOptions } from '../types'
 
 interface UseTransactionOptionsParams {
-  category: TransactionCategory
   transactionType: string
   clientName?: string
   currency: string
 }
 
 export const useTransactionOptions = ({
-  category,
   transactionType,
   clientName,
   currency,
 }: UseTransactionOptionsParams) => {
+  // Lấy mode từ Store
+  const { mode } = useTransactionModalStore()
+
   // ==================== TRANSACTION TYPE OPTIONS ====================
   const transactionTypeOptions = useMemo(() => {
-    const types = category === 'debit' ? DEBIT_TRANSACTION_TYPES : CREDIT_TRANSACTION_TYPES
+    const types = mode === 'Debit' ? DEBIT_TRANSACTION_TYPES : CREDIT_TRANSACTION_TYPES
     return types.map((t) => ({ label: t, value: t }))
-  }, [category])
+  }, [mode])
   
   // ==================== TRANSACTION STATUS OPTIONS ====================
   const transactionStatusOptions = useMemo(() => {

@@ -225,10 +225,6 @@ interface TransactionTextFieldProps {
   fullWidth?: boolean
 }
 
-/**
- * Text field wrapper specifically for transaction table layout
- * Uses react-hook-form Controller for form integration
- */
 export function TransactionTextField({
   name,
   label,

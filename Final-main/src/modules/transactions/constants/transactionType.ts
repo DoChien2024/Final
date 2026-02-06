@@ -44,7 +44,7 @@ const DEFAULT_CONFIG: FieldVisibility = {
   showGstAmount: false,
   bankDirection: null,
   descriptionAutoFill: '',
-  descriptionEditable: false,
+  descriptionEditable: true,
 }
 
 const DEBIT_BASE: Partial<FieldVisibility> = { bankDirection: 'from' }

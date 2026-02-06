@@ -9,23 +9,20 @@ import { createCashTransaction } from '../api'
 import { buildTransactionPayload } from '../utils/payloadBuilder'
 import { minDate, maxDate } from '../schema'
 import type { TransactionFormValues } from '../types'
-import type { TransactionCategory } from '../constants'
 
 interface UseTransactionConfirmParams {
   formData: TransactionFormValues | null
   mode: 'draft' | 'submit' | null
-  category: TransactionCategory
 }
 
 export const useTransactionConfirm = ({
   formData,
   mode,
-  category,
 }: UseTransactionConfirmParams) => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const { showConfirm, hideConfirm } = useConfirmStore()
-  const { closeModal } = useTransactionModalStore()
+  const { closeModal, mode: storeMode } = useTransactionModalStore()
 
   // Create form with data from previous step
   const form = useForm<TransactionFormValues>({
@@ -42,7 +39,6 @@ export const useTransactionConfirm = ({
     fieldVisibility,
     formattedOptions,
   } = useTransactionOptions({
-    category,
     transactionType: formData?.transactionType || '',
     clientName: formData?.clientName || '',
     currency: formData?.currency || '',
@@ -82,7 +78,7 @@ export const useTransactionConfirm = ({
         currency: () => {},
         bankAccount: () => {},
       },
-      type: (category === 'debit' ? 'Debit' : 'Credit') as 'Debit' | 'Credit',
+      type: storeMode || 'Debit',
       mode: mode as 'draft' | 'submit',
     }),
     [
@@ -94,7 +90,7 @@ export const useTransactionConfirm = ({
       fieldVisibility,
       formattedOptions,
       formData,
-      category,
+      storeMode,
       mode,
     ]
   )

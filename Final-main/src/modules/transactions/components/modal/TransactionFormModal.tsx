@@ -2,7 +2,6 @@ import { FormProvider } from 'react-hook-form'
 import { FiX, FiInfo } from 'react-icons/fi'
 import { useTransactionForm } from '../../hooks/useTransactionForm'
 import { useTransactionModalStore } from '../../store/useTransactionModalStore'
-import type { TransactionCategory } from '../../constants'
 import { TransactionFormProvider } from '../../context/TransactionFormContext'
 
 // Import forms
@@ -12,12 +11,11 @@ import { InternalCommentsForm } from '../form/InternalCommentsForm'
 import { TransactionConfirmOverlay } from '../confirm'
 
 interface Props {
-  type: TransactionCategory
   onClose: () => void
 }
 
-export function TransactionFormModal({ type, onClose }: Props) {
-  const { showConfirm } = useTransactionModalStore()
+export function TransactionFormModal({ onClose }: Props) {
+  const { showConfirm, mode, category } = useTransactionModalStore()
   const {
     form,
     handleSubmit,
@@ -35,7 +33,7 @@ export function TransactionFormModal({ type, onClose }: Props) {
     transactionType,
     clientName,
     currency,
-  } = useTransactionForm({ category: type, onClose })
+  } = useTransactionForm({ onClose })
 
   const contextValue = {
     form,
@@ -51,7 +49,7 @@ export function TransactionFormModal({ type, onClose }: Props) {
     clientName,
     currency,
     onChange,
-    type: (type === 'debit' ? 'Debit' : 'Credit') as 'Debit' | 'Credit',
+    type: mode || 'Debit',
   }
 
   return (
@@ -60,7 +58,7 @@ export function TransactionFormModal({ type, onClose }: Props) {
         {/* Header */}
         <div className="modal-header">
           <h2 className="modal-title">
-            Create Transaction - {type.charAt(0).toUpperCase() + type.slice(1)}
+            Create Transaction - {category ? category.charAt(0).toUpperCase() + category.slice(1) : ''}
           </h2>
           <button onClick={handleClose} className="modal-close-btn"><FiX /></button>
         </div>
@@ -109,7 +107,7 @@ export function TransactionFormModal({ type, onClose }: Props) {
       </div>
 
       {/* Confirm Overlay - shows on top of form modal */}
-      {showConfirm && <TransactionConfirmOverlay category={type} />}
+      {showConfirm && <TransactionConfirmOverlay />}
     </div>
   )
 }

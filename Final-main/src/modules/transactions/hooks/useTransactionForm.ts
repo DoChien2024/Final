@@ -2,16 +2,13 @@ import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTransactionModalStore } from '../store/useTransactionModalStore'
-import { useToastStore } from '@/store/toastStore'
 
 import { transactionFormSchema, minDate, maxDate } from '../schema'
 import { getTransactionConfig } from '../constants'
-import type { TransactionCategory } from '../constants'
 import type { TransactionFormValues } from '../types'
 import { useTransactionOptions } from './useTransactionOptions'
 
 interface UseTransactionFormProps {
-  category: TransactionCategory
   onClose: () => void
 }
 
@@ -35,24 +32,24 @@ const DEFAULT_FORM_VALUES: TransactionFormValues = {
   _hasBankOptions: false,
 }
 
-export const useTransactionForm = ({ category, onClose }: UseTransactionFormProps) => {
+export const useTransactionForm = ({ onClose }: UseTransactionFormProps) => {
   const { openConfirm } = useTransactionModalStore()
-  const { showToast } = useToastStore()
   
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema) as any,
     mode: 'onTouched', // Validate when field is touched/blurred
     reValidateMode: 'onChange', // Re-validate on every change after first submission
     defaultValues: DEFAULT_FORM_VALUES,
+    shouldFocusError: true, // Auto focus & scroll to first error field
+    criteriaMode: 'firstError', // Stop at first error per field
   })
 
-  const { control, setValue, reset, handleSubmit, watch, getValues } = form
+  const { control, setValue, reset, watch, handleSubmit, clearErrors, getValues } = form
   const transactionType = watch('transactionType')
   const clientName = watch('clientName')
   const currency = watch('currency')
 
   const { transactionTypeOptions, transactionStatusOptions, options, loadingStates, fieldVisibility, formattedOptions } = useTransactionOptions({
-    category,
     transactionType,
     clientName,
     currency,
@@ -69,8 +66,12 @@ export const useTransactionForm = ({ category, onClose }: UseTransactionFormProp
       
       const config = getTransactionConfig(newType)
       setValue('description', config.descriptionAutoFill)
+      // Clear description error after auto-fill
+      if (config.descriptionAutoFill) {
+        clearErrors('description')
+      }
     },
-    [setValue]
+    [setValue, clearErrors]
   )
 
   // Handler: Client Name Change
@@ -114,24 +115,11 @@ export const useTransactionForm = ({ category, onClose }: UseTransactionFormProp
     [openConfirm]
   )
 
-  // Handle validation errors
-  const onSaveAndSubmitError = useCallback(
-    (errors: any) => {
-      const errorCount = Object.keys(errors).length
-      showToast(`Please fix ${errorCount} validation error(s) before submitting`, 'error')
-      
-      // Scroll to first error field
-      setTimeout(() => {
-        const firstErrorField = Object.keys(errors)[0]
-        const element = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          element.focus()
-        }
-      }, 100)
-    },
-    [showToast]
-  )
+  // Handle validation errors - shouldFocusError will auto scroll & focus
+  const onSaveAndSubmitError = useCallback(() => {
+    // React Hook Form will auto focus & scroll to first error field
+    // No need for manual error handling
+  }, [])
 
   // Save and Close: No validation, show confirm page
   const onSaveAndClose = useCallback(() => {

@@ -13,21 +13,12 @@ export function TransactionDetailsForm() {
     transactionTypeOptions, 
     transactionStatusOptions,
     transactionType,
-    onChange,
-    mode
+    onChange
   } = useTransactionFormContext()
   
-  const { getValues, formState: { errors } } = useFormContext<TransactionFormValues>()
-  const isReadOnly = !!mode
+  const { formState: { errors } } = useFormContext<TransactionFormValues>()
 
   const showAllFields = !!transactionType
-
-  // Helper to get label from options
-  const getLabel = (value: string | undefined, options: Array<{ label: string; value: string }>) => {
-    if (!value) return '-'
-    const option = options.find(opt => opt.value === value)
-    return option ? option.label : value
-  }
 
   // Use onChange handler from hook
   const handleTransactionTypeChange = (newValue: string | null) => {
@@ -61,18 +52,12 @@ export function TransactionDetailsForm() {
               Transaction Type <span className="required-asterisk">*</span>
             </label>
             <div className="form-table-input">
-              {isReadOnly ? (
-                <span className="form-value-text">{getLabel(getValues('transactionType'), transactionTypeOptions)}</span>
-              ) : (
-                <>
-                  <SelectController
-                    name="transactionType"
-                    options={transactionTypeOptions}
-                    extendOnChange={handleTransactionTypeChange}
-                  />
-                  {errors.transactionType && <span className="form-error">{errors.transactionType.message}</span>}
-                </>
-              )}
+              <SelectController
+                name="transactionType"
+                options={transactionTypeOptions}
+                extendOnChange={handleTransactionTypeChange}
+              />
+              {errors.transactionType && <span className="form-error">{errors.transactionType.message}</span>}
             </div>
           </div>
 
@@ -82,20 +67,14 @@ export function TransactionDetailsForm() {
               Transaction Status <span className="required-asterisk">*</span>
             </label>
             <div className="form-table-input">
-              {isReadOnly ? (
-                <span className="form-value-text">{getLabel(getValues('status'), transactionStatusOptions)}</span>
-              ) : (
-                <StatusButtons 
-                  statuses={transactionStatusOptions.map(s => s.value)} 
-                />
-              )}
+              <StatusButtons 
+                statuses={transactionStatusOptions.map(s => s.value)} 
+              />
+              {errors.status && <span className="form-error">{errors.status.message}</span>}
             </div>
           </div>
-
-          {/* Only show remaining fields when transaction type is selected */}
           {showAllFields && (
             <>
-              {/* Form fields based on type */}
               {renderFormFields()}
             </>
           )}

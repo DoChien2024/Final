@@ -29,7 +29,6 @@ export function TransactionConfirmPage() {
   const { form, contextValue, handleCreate, isLoading } = useTransactionConfirm({
     formData: formData || null,
     mode: mode || null,
-    category: category!,
   })
 
   const handleBack = () => {

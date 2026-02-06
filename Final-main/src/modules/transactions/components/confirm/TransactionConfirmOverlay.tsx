@@ -1,13 +1,8 @@
 import { useTransactionConfirm } from '../../hooks/useTransactionConfirm'
 import { useTransactionModalStore } from '../../store/useTransactionModalStore'
 import { TransactionConfirmView } from './TransactionConfirmView'
-import type { TransactionCategory } from '../../constants'
 
-interface Props {
-  category: TransactionCategory
-}
-
-export function TransactionConfirmOverlay({ category }: Props) {
+export function TransactionConfirmOverlay() {
   const { confirmData, confirmMode, closeConfirm } = useTransactionModalStore()
 
   const formData = confirmData
@@ -17,7 +12,6 @@ export function TransactionConfirmOverlay({ category }: Props) {
   const { form, contextValue, handleCreate, isLoading } = useTransactionConfirm({
     formData: formData || null,
     mode: mode || null,
-    category,
   })
 
   const handleBack = () => {

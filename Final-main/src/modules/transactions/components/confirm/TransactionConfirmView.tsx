@@ -45,7 +45,7 @@ export function TransactionConfirmView({
       {/* Form (Read-only) */}
       <TransactionFormProvider value={contextValue}>
         <FormProvider {...form}>
-          <fieldset disabled={mode === 'submit'} className="confirm-form">
+          <fieldset disabled className="confirm-form">
             <div className="confirm-form-content">
               <TransactionDetailsForm />
               <DocumentAttachmentForm defaultOpen={true} />
