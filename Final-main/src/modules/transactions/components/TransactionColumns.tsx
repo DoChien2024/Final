@@ -13,7 +13,7 @@ interface TransactionListItem {
   transactionType: string
   transactionCategory: string
   createDo: string
-  effectiveDo: string
+  effectiveDo: string | null
   isin: string | null
   currency: string
   description: string
@@ -111,9 +111,94 @@ export const createTransactionColumns = () => [
     ),
     size: 120,
   }),
+  columnHelper.accessor('debit', {
+    header: 'Debit',
+    enableSorting: false,
+    cell: info => {
+      const value = info.getValue()
+      if (value === null || value === undefined) return <div style={{ minWidth: '100px', textAlign: 'right' }}>-</div>
+      return <div style={{ minWidth: '100px', textAlign: 'right' }}>{value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    },
+    size: 120,
+  }),
+  columnHelper.accessor('credit', {
+    header: 'Credit',
+    enableSorting: false,
+    cell: info => {
+      const value = info.getValue()
+      if (value === null || value === undefined) return <div style={{ minWidth: '100px', textAlign: 'right' }}>-</div>
+      return <div style={{ minWidth: '100px', textAlign: 'right' }}>{value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    },
+    size: 120,
+  }),
+  columnHelper.accessor('bankChargesAmt', {
+    header: 'Bank Charges',
+    enableSorting: false,
+    cell: info => {
+      const value = info.getValue()
+      return <div style={{ minWidth: '100px', textAlign: 'right' }}>{value.toFixed(2)}</div>
+    },
+    size: 120,
+  }),
+  columnHelper.accessor('feesAmt', {
+    header: 'Fees',
+    enableSorting: false,
+    cell: info => {
+      const value = info.getValue()
+      return <div style={{ minWidth: '100px', textAlign: 'right' }}>{value.toFixed(2)}</div>
+    },
+    size: 120,
+  }),
+  columnHelper.accessor('gstAmt', {
+    header: 'GST',
+    enableSorting: false,
+    cell: info => {
+      const value = info.getValue()
+      return <div style={{ minWidth: '100px', textAlign: 'right' }}>{value.toFixed(2)}</div>
+    },
+    size: 120,
+  }),
+  columnHelper.accessor('netAmt', {
+    header: 'Net Amount',
+    enableSorting: false,
+    cell: info => {
+      const value = info.getValue()
+      return <div style={{ minWidth: '120px', textAlign: 'right', fontWeight: '500' }}>{value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    },
+    size: 140,
+  }),
+  columnHelper.accessor('orderStatusAlias', {
+    header: 'Status',
+    enableSorting: false,
+    cell: info => {
+      const status = info.getValue()
+      const isCompleted = status.toLowerCase() === 'completed'
+      const isPending = status.toLowerCase() === 'pending'
+      
+      return (
+        <div style={{ minWidth: '100px' }}>
+          <span
+            style={{
+              display: 'inline-block',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: '500',
+              textTransform: 'uppercase',
+              backgroundColor: isCompleted ? '#d4edda' : isPending ? '#fff3cd' : '#f8d7da',
+              color: isCompleted ? '#155724' : isPending ? '#856404' : '#721c24',
+            }}
+          >
+            {status}
+          </span>
+        </div>
+      )
+    },
+    size: 120,
+  }),
   columnHelper.display({
     id: 'actions',
-    header: 'Action',
+    header: '',
     cell: ({ row }) => {
       const { open } = useModalStore()
       
@@ -122,7 +207,7 @@ export const createTransactionColumns = () => [
           <button
             onClick={() => open('edit', String(row.original.id), row.original)}
             className="btn-action-view"
-            style={{ color: '#ef4444', fontSize: '14px', fontWeight: '500' }}
+            style={{ color: '#ef4444', fontSize: '14px', fontWeight: '500', cursor: 'pointer', background: 'none', border: 'none' }}
           >
             View
           </button>

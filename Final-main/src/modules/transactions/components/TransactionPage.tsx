@@ -17,8 +17,8 @@ export default function TransactionPage() {
   
   const mockPaginationData = {
     items: mockTransactionList,
-    total: mockTransactionList.length,
-    totalPages: 1,
+    total: 612, // Total items as shown in the UI
+    totalPages: 62, // 612 / 10 = 61.2 rounded up to 62
   }
 
   return (
